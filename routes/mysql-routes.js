@@ -8,7 +8,7 @@ const { snPool, taPool, wo3Pool } = require('../configs/mysql');
 // =============
 router.get('/getSnDepot', async (req, res) => {
     try {
-        snPool.query('SELECT `Purchase No` AS `Purchase_No`, `Quantity`, `Date`, `Price`, `Amount`, `Lot #` AS `Lot_Num`, `Lot_id` FROM `Depot`', (err, result) => {
+        snPool.query('SELECT `Purchase No` AS `Purchase_No`, `Quantity`, `Date`, `Price`, `Amount`, `Lot #` AS `Lot_Num`, `Lot_id`, `LME`, `TC` FROM `Depot`', (err, result) => {
             res.json({SnDepot: result})
         })
     } catch (error) {
@@ -48,7 +48,7 @@ router.get('/getSnRegistration', async (req, res) => {
 
 router.get('/getSnRegistrationFiltered', async (req, res) => {
     try {
-        snPool.query('SELECT `Sn`, `Mass` FROM `Registration` natural join Depot WHERE `Lot #` = 0', (err, result) => {
+        snPool.query('SELECT `Sn`, `Mass`, `LME`, `TC` FROM `Registration` natural join Depot WHERE `Lot #` = 0', (err, result) => {
             res.json({SnRegistrationFiltered: result})
         })
     } catch (error) {
@@ -58,7 +58,7 @@ router.get('/getSnRegistrationFiltered', async (req, res) => {
 
 router.get('/getSnPurchases', async (req, res) => {
     try {
-        snPool.query('SELECT `Purchase No` AS `Purchase_No`, `Date`, `Name`, `Mass`, `Sn`, `Price`, `Amount`, `Lot #` AS `Lot_Num`, `Comments` FROM `Depot` natural join `Registration`', (err, result) => {
+        snPool.query('SELECT `Purchase No` AS `Purchase_No`, `Date`, `Name`, `Mass`, `Sn`, `Price`, `Amount`, `Lot #` AS `Lot_Num`, `Comments`, `LME`, `TC` FROM `Depot` natural join `Registration`', (err, result) => {
             res.json({SnPurchases: result})
         })
     } catch (error) {
