@@ -17,6 +17,7 @@ app.use(cors());
 // ===============
 
 app.use(require('./routes/mysql-routes'));
+app.use(require('./routes/generated-contract-routes'));
 
 // === Frontend: ===
 // =================
