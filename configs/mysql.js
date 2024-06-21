@@ -26,4 +26,12 @@ const wo3Pool = mysql.createPool({
     database: 'wo3'
 });
 
-module.exports = { snPool, taPool, wo3Pool };
+const twt = mysql.createPool({
+    host: '127.0.0.1',
+    port: '3306',
+    user: 'twt',
+    password: 'twt1234',
+    database: 'twt'
+});
+
+module.exports = { snPool, taPool, wo3Pool, twt};
