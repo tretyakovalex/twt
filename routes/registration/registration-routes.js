@@ -66,6 +66,21 @@ router.get('/getRegistrationByOfferNumber', async (req, res) => {
 
 // ========================================
 
+// === get registration by sample number ===
+
+router.get('/getRegistrationBySampleNumber', async (req, res) => {
+const sample_number = req.query.sample_number;
+    try {
+        twt.query('SELECT date, sample_number, material, mass FROM registrations registrations WHERE sample_number = ?', sample_number, (err, result) => {
+            res.json({registration: result})
+        })
+    } catch (error) {
+        console.error(error);
+    }
+})
+
+// =========================================
+
 // === get registration by date from table ===
 
 router.get('/getRegistrationByDate', async (req, res) => {
@@ -87,9 +102,9 @@ router.put('/updateRegistrations', async (req, res) => {
     try {
         const data = req.body;
 
-        const query = `UPDATE registrations SET offer_number=?, analysis_number=?, company_name=?, itsci_number=?, number_of_bags=?, material=?, mass=?, date=? WHERE registration_id=?`;
+        const query = `UPDATE registrations SET offer_number=?, sample_number=?, company_name=?, itsci_number=?, number_of_bags=?, material=?, mass=?, date=? WHERE registration_id=?`;
 
-        twt.query(query, [data.offer_number, data.analysis_number, data.company_name, data.itsci_number, data.number_of_bags, data.material, data.mass, data.date, data.registration_id], (err, result) => {
+        twt.query(query, [data.offer_number, data.sample_number, data.company_name, data.itsci_number, data.number_of_bags, data.material, data.mass, data.date, data.registration_id], (err, result) => {
             if (err) {
                 console.error(err);
                 return res.status(500).json({"error": "Internal Server Error"});
