@@ -28,7 +28,7 @@ router.post('/addRegistration', async (req, res) => {
 
 router.get('/getRegistrationsOfferNumbers', async (req, res) => {
     try {
-        twt.query('SELECT offer_number FROM registrations', (err, result) => {
+        twt.query('SELECT offer_number FROM registrations ORDER BY offer_number DESC', (err, result) => {
             res.json({offer_numbers: result})
         })
     } catch (error) {
