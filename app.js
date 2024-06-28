@@ -20,6 +20,7 @@ app.use(require('./routes/mysql-routes'));
 app.use(require('./routes/generated-contract-routes'));
 app.use(require('./routes/registration/companies-routes'));
 app.use(require('./routes/registration/registration-routes'));
+app.use(require('./routes/results/results-routes'));
 
 
 // === Frontend: ===
