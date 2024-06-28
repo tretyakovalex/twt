@@ -25,7 +25,7 @@ router.post('/addRegistration', async (req, res) => {
 
 // ==================================
 
-
+// === get registration offer numbers ===
 router.get('/getRegistrationsOfferNumbers', async (req, res) => {
     try {
         twt.query('SELECT offer_number FROM registrations ORDER BY offer_number DESC', (err, result) => {
@@ -36,6 +36,19 @@ router.get('/getRegistrationsOfferNumbers', async (req, res) => {
     }
 })
 
+// =======================================
+
+// === get registration sample numbers ===
+router.get('/getRegistrationsSampleNumbers', async (req, res) => {
+    try {
+        twt.query('SELECT sample_number FROM registrations ORDER BY offer_number DESC', (err, result) => {
+            res.json({sample_numbers: result})
+        })
+    } catch (error) {
+        console.error(error);
+    }
+})
+// =======================================
 
 // === get last registration from table ===
 
@@ -47,11 +60,25 @@ router.get('/getLastRegistration', async (req, res) => {
     } catch (error) {
         console.error(error);
     }
-})
+});
 
 // ========================================
 
-// === get last registration from table ===
+// === get last offer number from registration ===
+
+router.get('/getLastOfferNumber', async (req, res) => {
+    try {
+        twt.query('SELECT offer_number FROM registrations ORDER BY offer_number DESC LIMIT 1', (err, result) => {
+            res.json({lastOfferNumber: result})
+        })
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+// ================================================
+
+// === get registration by offer number ===
 
 router.get('/getRegistrationByOfferNumber', async (req, res) => {
     const offer_number = req.query.offer_number;
