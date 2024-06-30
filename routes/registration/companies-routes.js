@@ -7,7 +7,7 @@ const { twt } = require('../../configs/mysql');
 
 router.get('/getAllCompanyName', async (req, res) => {
     try {
-        twt.query('SELECT company_id, company_name FROM `companies` WHERE blacklisted = 0', (err, result) => {
+        twt.query('SELECT DISTINCT company_name FROM `companies` WHERE blacklisted = 0', (err, result) => {
             res.json({companies: result})
         })
     } catch (error) {
@@ -70,9 +70,9 @@ router.put('/updateCompany', async (req, res) => {
         const data = req.body;
         console.log(data);
 
-        const query = `UPDATE companies SET company_name=?, tin=?, blacklisted=? WHERE company_id=?`;
+        const query = `UPDATE companies SET company_name=?, tin=?, mine=?, district=?, tunnels=?, blacklisted=? WHERE company_id=?`;
 
-        twt.query(query, [data.company_name, data.tin, data.blacklisted, data.company_id] ,(err, result) => {
+        twt.query(query, [data.company_name, data.tin, data.mine, data.district, data.tunnels, data.blacklisted, data.company_id] ,(err, result) => {
             res.json("Company updated successfully!");
         });
     } catch (error) {
