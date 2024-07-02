@@ -55,6 +55,10 @@ router.post('/addCompany', async (req, res) => {
 
     try {
         twt.query('INSERT INTO companies SET ?', data ,(err, result) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).send('Internal Server Error');
+            }
             res.json("Company added successfully!");
         });
     } catch (error) {
@@ -70,7 +74,7 @@ router.put('/updateCompany', async (req, res) => {
         const data = req.body;
         console.log(data);
 
-        const query = `UPDATE companies SET company_name=?, tin=?, mine=?, district=?, tunnels=?, blacklisted=? WHERE company_id=?`;
+        const query = `UPDATE companies SET company_name=?, tin=?, mine=?, district=?, tunnels=?, blacklisted=?, last_blacklisted=?, last_blacklisted_reason=?, exit_last_blacklisted=?, exit_last_blacklisted_reason=? WHERE company_id=?`;
 
         twt.query(query, [data.company_name, data.tin, data.mine, data.district, data.tunnels, data.blacklisted, data.company_id] ,(err, result) => {
             res.json("Company updated successfully!");
