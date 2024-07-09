@@ -2,37 +2,13 @@ const mysql = require('mysql2');
 
 require('dotenv').config();
 
-// const snPool = mysql.createPool({
-//     host: '10.147.19.172',
-//     port: '3306',
-//     user: 'GSA',
-//     password: '9379992a',
-//     database: 'sn'
-// });
-
-// const taPool = mysql.createPool({
-//     host: '10.147.19.172',
-//     port: '3306',
-//     user: 'GSA',
-//     password: '9379992a',
-//     database: 'ta'
-// });
-
-// const wo3Pool = mysql.createPool({
-//     host: '10.147.19.172',
-//     port: '3306',
-//     user: 'GSA',
-//     password: '9379992a',
-//     database: 'wo3'
-// });
-
-const twt = mysql.createPool({
-    host: '127.0.0.1',
-    port: '3306',
-    user: 'twt',
-    password: 'twt1234',
-    database: 'twt'
+const pool = mysql.createPool({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PW,
+    database: process.env.DB_NAME,
+    timezone: 'utc'
 });
 
-// module.exports = { snPool, taPool, wo3Pool, twt};
 module.exports = {twt};
