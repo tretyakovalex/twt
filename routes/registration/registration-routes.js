@@ -50,6 +50,20 @@ router.get('/getRegistrationsSampleNumbers', async (req, res) => {
 })
 // =======================================
 
+// === get registration sample numbers ===
+router.get('/getSampleNumbersByDate', async (req, res) => {
+    const date = req.query.date;
+    console.log(date);
+    try {
+        twt.query('SELECT DISTINCT sample_number FROM registrations WHERE date=?', [date], (err, result) => {
+            res.json({sampleNumbers: result})
+        })
+    } catch (error) {
+        console.error(error);
+    }
+})
+// =======================================
+
 // === get last registration from table ===
 
 router.get('/getLastRegistration', async (req, res) => {

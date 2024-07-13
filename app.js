@@ -21,6 +21,8 @@ app.use(require('./routes/generated-contract-routes'));
 app.use(require('./routes/registration/companies-routes'));
 app.use(require('./routes/registration/registration-routes'));
 app.use(require('./routes/results/results-routes'));
+app.use(require('./routes/purchases/purchase-routes'));
+app.use(require('./routes/purchases/purchasing-settings-routes'));
 
 app.use(require('./routes/users/userLogin'));
 app.use(require('./routes/users/userRegistration'));
