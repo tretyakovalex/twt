@@ -1,0 +1,18 @@
+{
+    "purchase_number":"6129",
+    "material_type":"TA",
+    "material_name":"material_name",
+    "purchase_mass":"344.5",
+    "company_name":"AFRIBUSSINESS",
+    "tin":"123123123",
+    "price_usd_per_kg":"70.55",
+    "total_amount_usd":"24287.3",
+    "date":"02.07.2024",
+    "exchange_rate_rwf_usd":"1336",
+    "rma_payment_rwf_per_kg":"125",
+    "rma_payment_total_rwf":"43062",
+    "rma_payment_three_percent_usd":"728.6",
+    "rma_payment_three_percent_rwf":"973 409.6",
+    "client_net_payment":"23526.50",
+    "number_of_bags":"12"
+}

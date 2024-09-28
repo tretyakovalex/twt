@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="./public/stylesheets/purchaseCertificateStyle.css">
+    <title>Document</title>
+</head>
+<body>
+    <div class="page">
+        <div class="title">
+            <h2>Purchase № {{purchase_number}} TAWOTIN – {{material_type}}</h2>
+        </div>
+
+        <div class="top">
+            <p>For purchase of <strong>{{purchase_mass}}</strong> kg of {{material_name}}</p>
+            <p>To AFRIBUSSINESS</p>
+            <p>TIN № {{tin}}</p>
+            <p>Price <strong>{{price_usd_per_kg}}</strong> USD/kg. Total Amount: <strong>{{total_amount_usd}}</strong> USD</p>
+            <p>Date {{date}} Sign _______________</p>
+        </div>
+
+        <div class="divider">------------------------------------------------------------------------------------------------------------------------</div>
+
+        <div class="top">
+            <h4>Government Tax for purchase № {{purchase_number}} TAWOTIN – {{material_type}}</h4>
+            <p>Exchange Rate: {{exchange_rate_rwf_usd}} RWF / USD</p>
+            <p><i>RMA Payment ( {{rma_payment_rwf_per_kg}} RWF / kg ):________{{rma_payment_total_rwf}}__________RWF</i></p>
+            <p><i>RRA Payment ( 3% ): _____{{rma_payment_three_percent_usd}} USD   or  {{rma_payment_three_percent_rwf}}_RWF___</i></p>
+            <p>Client Net payment: <strong>{{client_net_payment}} USD</strong></p>
+        </div>
+
+        <div class="solidDivider"></div>
+
+        <div class="mid">
+            <h2>{{material_type}}</h2>
+            <h2>{{purchase_number}}</h2>
+            <h3>{{company_name}}</h3>
+            <h3>{{purchase_mass}}</h3>
+            <h4>{{date}}</h4>
+            <h4>№ of bags: {{number_of_bags}}</h4>
+        </div>
+    </div>
+</body>
+</html>
