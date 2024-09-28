@@ -112,7 +112,7 @@ router.get('/getRegistrationByOfferNumber', async (req, res) => {
 router.get('/getRegistrationBySampleNumber', async (req, res) => {
 const sample_number = req.query.sample_number;
     try {
-        twt.query('SELECT date, sample_number, material, mass FROM registrations registrations WHERE sample_number = ?', sample_number, (err, result) => {
+        twt.query('SELECT date, sample_number, material, company_name, mass FROM registrations registrations WHERE sample_number = ?', sample_number, (err, result) => {
             res.json({registration: result})
         })
     } catch (error) {
