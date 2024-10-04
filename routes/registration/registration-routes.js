@@ -162,6 +162,46 @@ router.put('/updateRegistrations', async (req, res) => {
 // ===========================
 
 
+// === Delete Registration ===
+// Testing out with purchasing_settings
+router.delete('/deleteSelectedRegistration', async (req, res) => {
+    try {
+        const registration_id = req.query.registration_id;
+        console.log("registration_id: ", registration_id );
+
+        const query = `DELETE from registrations WHERE registration_id=?`;
+
+        twt.query(query, registration_id, (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({"error": "Internal Server Error"});
+            }
+
+            res.status(201).json({"message": "Registration was successfully removed!"});
+
+            // twt.query('SELECT MAX(registration_id) AS max_id FROM registrations;', (err, lastId) => {
+            //     if(err){
+            //         console.error(err);
+            //         return res.status(500).json({"error": "Internal Server Error"});    
+            //     }
+
+            //     console.log('Printing last registration_id: ', lastId[0]);
+            //     console.log('Printing last registration_id: ', lastId[0].max_id);
+
+            //     twt.query(`ALTER TABLE registrations AUTO_INCREMENT = ${lastId[0].max_id + 1};`, (err, response) =>{
+            //         if(err){
+            //             console.error(err);
+            //             return res.status(500).json({"error": "Internal Server Error"});    
+            //         }
+            //     })
+            // })
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({"error": "Internal Server Error"});
+    }
+});
+// ===========================
 
 module.exports = router;
 
