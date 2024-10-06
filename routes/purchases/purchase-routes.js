@@ -206,29 +206,30 @@ router.get('/get_Purchase_Info_By_Sample_Number', async (req, res) => {
                 return res.status(500).send('Internal Server Error');
             }
             let modifiedResult = [];
+            console.log("printing result[0]: ", result[0]);
 
             if(result[0].material === "TA"){
                 modifiedResult.push({
                     company_name: result[0].company_name,
                     mass: result[0].mass,
                     material_name: result[0].material,
-                    material_percentage: result[0].twt_ta205 || 0,
+                    material_percentage: result[0].twt_ta2o5 || 0,
                     tunnels: result[0].tunnels
                 })
             } else if (result[0].material === "Sn" || result[0].material === "SN"){
                 modifiedResult.push({
                     company_name: result[0].company_name,
                     mass: result[0].mass,
-                    material: result[0].material,
-                    material_percentage: result[0].twt_ta205 || 0,
+                    material_name: result[0].material,
+                    material_percentage: result[0].twt_sn || 0,
                     tunnels: result[0].tunnels
                 })
             } else if (result[0].material === "WO3" || result[0].material === "W"){
                 modifiedResult.push({
                     company_name: result[0].company_name,
                     mass: result[0].mass,
-                    material: result[0].material,
-                    material_percentage: result[0].twt_ta205 || 0,
+                    material_name: result[0].material,
+                    material_percentage: result[0].twt_nb2o5 || 0,
                     tunnels: result[0].tunnels
                 })
             }
