@@ -23,6 +23,12 @@ app.use(require('./routes/registration/registration-routes'));
 app.use(require('./routes/results/results-routes'));
 app.use(require('./routes/purchases/purchase-routes'));
 app.use(require('./routes/purchases/purchasing-settings-routes'));
+app.use(require('./routes/purchases/importPurchasesFromExcel'));
+app.use(require('./routes/purchases/exportDailyPurchasesToExcel'));
+app.use(require('./routes/lots/lots-routes'));
+app.use(require('./routes/lots/importLotsFromExcel'));
+app.use(require('./routes/results/importResultsFromExcel'));
+
 
 app.use(require('./routes/users/userLogin'));
 app.use(require('./routes/users/userRegistration'));

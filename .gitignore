@@ -4,3 +4,6 @@ node_modules
 package-lock.json
 routes.rest
 ./configs/mysql-old.js
+purchases_Sn.xlsx
+purchases_Ta.xlsx
+purchases_W.xlsx

@@ -23,8 +23,8 @@ router.post('/addResults', async (req, res) => {
     // const data = req.body;
     try {
         const rows = req.body;
-        // const columns = Object.keys(data);
-        // const values = Object.values(data);
+        const columns = Object.keys(data);
+        const values = Object.values(data);
 
         // console.log("Printing columns: ");
         // console.log(columns);
@@ -32,41 +32,30 @@ router.post('/addResults', async (req, res) => {
         // console.log("Printing values: ");
         // console.log(values);
 
-        // const query = `
-        //     INSERT INTO results
-        //     (${columns.join(', ')})
-        //     VALUES
-        //     (${Array(columns.length).fill('?').join(', ')})
-        //     `;
+        const query = `
+            INSERT INTO results
+            (${columns.join(', ')})
+            VALUES
+            (${Array(columns.length).fill('?').join(', ')})
+            `;
 
-        let insertQuery = ``;
+        console.log(query);
 
-        rows.forEach((row) => {
-            const columns = Object.keys(row);
-            // const values = Object.values(row);
-            const values = Object.values(row).map(value => {
-                return (value === '') ? "''" : `'${value}'`;
-            });
-            insertQuery += `INSERT INTO results (${columns.join(', ')}) VALUES (${values.join(', ')});`
-        });
+        // twt.query(query, values, (err, result) => {
+        //     if (err) {
+        //         if (err.code === 'ER_DUP_ENTRY') {
+        //             return res.status(400).json({
+        //                 success: false,
+        //                 message: 'Duplicate entry: The sample_number already added to results.'
+        //             });
+        //         } else {
+        //             console.log(err);
+        //             return res.status(500).send({message: 'Internal Server Error'});
+        //         }
+        //     }
 
-        console.log(insertQuery);
-
-        twt.query(insertQuery, (err, result) => {
-            if (err) {
-                if (err.code === 'ER_DUP_ENTRY') {
-                    return res.status(400).json({
-                        success: false,
-                        message: 'Duplicate entry: The sample_number already added to results.'
-                    });
-                } else {
-                    console.log(err);
-                    return res.status(500).send({message: 'Internal Server Error'});
-                }
-            }
-
-            res.json({ results: result });
-        });
+        //     res.json({ results: result });
+        // });
     } catch (error) {
         console.error(error);
         return res.status(500).send('Internal Server Error');
@@ -156,6 +145,46 @@ router.get('/getResultsToUpdateByDate', async (req, res) => {
         const query = `SELECT * FROM results WHERE date=?`;
         twt.query(query, date, (err, result) => {
             res.json({results: result})
+        })
+    } catch (error) {
+        console.error(error);
+    }
+})
+
+router.get('/getResultsForLots', async (req, res) => {
+    try {
+        const query = `select pur.purchase_id as purchase_number, pur.purchase_date as date, pur.company_name, pur.mass, pur.material_name, pur.material_percentage, pur.price_per_kg, pur.total_amount, res.remarks from purchases pur INNER JOIN results res ON pur.sample_number=res.sample_number;`;
+        twt.query(query, async (err, result) => {
+            if(err){
+                console.error(err);
+            }
+
+            const unparsedLots = await fetch('http://localhost:4000/getDetailedLots');
+            let lots = await unparsedLots.json();
+
+            let finalArray = [];
+
+            console.log("Printing lots:");
+            console.log(lots.lots);
+
+            result.forEach(item1 => {
+                // Find the matching object in the second array
+                const matchingItem = lots.lots.find(item2 => item2.purchase_number === item1.purchase_number);
+                console.log("Printing matchingItem: ", matchingItem);
+                // If a match is found, add it to array3
+                if (matchingItem) {
+                    // finalArray.push({
+                    //     ...matchingItem
+                    // });
+                } else if(!matchingItem){
+                    finalArray.push({
+                        ...item1
+                    });
+                }
+              });
+
+            // console.log(lots);
+            res.json({results: finalArray})
         })
     } catch (error) {
         console.error(error);

@@ -15,8 +15,23 @@ const compilePurchaseReceipt = require('../../handlebars/purchasingCertificateTe
 
 router.post('/addPurchase', async (req, res) => {
     try {
-        const data = req.body;
+        let data = req.body;
         const query = `INSERT INTO purchases SET ?`;
+
+        let unparsedLastPurchase = await fetch('http://localhost:4000/getLastPurchaseMaterialNumber');
+        let LastPurchase = await unparsedLastPurchase.json();
+
+        console.log(LastPurchase[0]);
+
+        if(LastPurchase[0].material_name === "TA"){
+            data.ta_purchase_id = LastPurchase[0].ta_purchase_id + 1;
+        } else if(LastPurchase[0].material_name === "WO3" || LastPurchase[0].material_name === "W"){
+            data.wo3_purchase_id = LastPurchase[0].wo3_purchase_id + 1;
+        } else if(LastPurchase[0].material_name === "Sn" || LastPurchase[0].material_name === "SN"){
+            data.sn_purchase_id = LastPurchase[0].sn_purchase_id + 1;
+        }
+
+        console.log('data: ', data);
 
         twt.query(query, data, async (err, result) => {
             if (err) {
@@ -194,7 +209,42 @@ router.put('/updatePurchases', async (req, res) => {
     }
 });
 
-// === get purchase info for ta by sample number ===
+router.get('/getLastPurchaseMaterialNumber', async (req, res) => {
+    try {
+        const query = `SELECT purchase_id, material_name, ta_purchase_id, wo3_purchase_id, sn_purchase_id FROM purchases ORDER BY purchase_id DESC LIMIT 1;`
+        twt.query(query, (err, purchase) => {
+            if(err){
+                console.error(err);
+            }
+
+            let lastPurchase = [];
+
+            if(purchase[0].material_name === "TA"){
+                lastPurchase.push({
+                    purchase_id: purchase[0].purchase_id,
+                    material_name: purchase[0].material_name,
+                    ta_purchase_id: purchase[0].ta_purchase_id
+                })
+            } else if(purchase[0].material_name === "WO3" || purchase[0].material_name === "W"){
+                lastPurchase.push({
+                    purchase_id: purchase[0].purchase_id,
+                    material_name: purchase[0].material_name,
+                    wo3_purchase_id: purchase[0].wo3_purchase_id
+                })
+            } else if(purchase[0].material_name === "Sn" || purchase[0].material_name === "SN"){
+                lastPurchase.push({
+                    purchase_id: purchase[0].purchase_id,
+                    material_name: purchase[0].material_name,
+                    sn_purchase_id: purchase[0].sn_purchase_id
+                })
+            }
+
+            res.status(200).json(lastPurchase);
+        })
+    } catch (error) {
+        console.error(error);
+    }
+})
 
 router.get('/get_Purchase_Info_By_Sample_Number', async (req, res) => {
     try {
@@ -303,10 +353,12 @@ router.get('/get_Purchase_Info_By_Sample_Number', async (req, res) => {
 router.get('/getPurchasesByDate', async (req, res) => {
     try {
         const date = req.query.date;
+        const material_name = req.query.material_name;
         // const query = `select * from purchases where purchase_date=?;`
-        const query = `select pur.purchase_id, pur.sample_number, pur.sample_and_company_number, pur.purchase_date, pur.results_date, pur.company_name, pur.company_tunnel, pur.mass, reg.sample_number, pur.material_name, pur.material_percentage, pur.price_per_kg, pur.total_amount, pur.itsci_mine_site_number, pur.rma_frw, pur.rma_usd, pur.total_minus_rma_usd, pur.usd_per_pound
-                    from purchases pur INNER JOIN registrations reg ON pur.sample_number=reg.sample_number where pur.purchase_date=?;`
-        twt.query(query, [date], (err, result) => {
+        const query = `SELECT pur.purchase_id, pur.sample_number, pur.sample_and_company_number, pur.purchase_date, pur.results_date, pur.company_name, pur.company_tunnel, pur.mass, pur.material_name, pur.material_percentage, pur.price_per_kg, pur.total_amount, pur.itsci_mine_site_number, pur.rma_frw, pur.rma_usd, pur.total_minus_rma_usd, pur.usd_per_pound, pur.ta_purchase_id, pur.wo3_purchase_id, pur.sn_purchase_id
+                    FROM purchases pur WHERE material_name = '${material_name}' AND pur.purchase_date='${date}';`
+                    
+        twt.query(query, (err, result) => {
             if (err) {
                 console.log(err);
                 return res.status(500).send('Internal Server Error');
@@ -346,6 +398,5 @@ router.get('/getPurchasesByDate', async (req, res) => {
         console.error(error);
     }
 });
-
 
 module.exports = router;
