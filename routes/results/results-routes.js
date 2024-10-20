@@ -153,7 +153,9 @@ router.get('/getResultsToUpdateByDate', async (req, res) => {
 
 router.get('/getResultsForLots', async (req, res) => {
     try {
-        const query = `select pur.purchase_id as purchase_number, pur.purchase_date as date, pur.company_name, pur.mass, pur.material_name, pur.material_percentage, pur.price_per_kg, pur.total_amount, res.remarks from purchases pur INNER JOIN results res ON pur.sample_number=res.sample_number;`;
+        let material_name = req.query.material_name;
+        // const query = `select pur.purchase_id as purchase_number, pur.purchase_date as date, pur.company_name, pur.mass, pur.material_name, pur.material_percentage, pur.price_per_kg, pur.total_amount, res.remarks from purchases pur INNER JOIN results res ON pur.sample_number=res.sample_number;`;
+        const query = `select pur.purchase_id as purchase_number, pur.ta_purchase_id, pur.wo3_purchase_id, pur.sn_purchase_id, pur.purchase_date as date, pur.company_name, pur.mass, pur.material_name, pur.material_percentage, pur.price_per_kg, pur.total_amount, res.remarks from purchases pur INNER JOIN results res ON pur.sample_number=res.sample_number where material_name='${material_name}';`;
         twt.query(query, async (err, result) => {
             if(err){
                 console.error(err);
@@ -165,22 +167,51 @@ router.get('/getResultsForLots', async (req, res) => {
             let finalArray = [];
 
             console.log("Printing lots:");
-            console.log(lots.lots);
+            console.table(lots.lots);
 
             result.forEach(item1 => {
                 // Find the matching object in the second array
-                const matchingItem = lots.lots.find(item2 => item2.purchase_number === item1.purchase_number);
-                console.log("Printing matchingItem: ", matchingItem);
-                // If a match is found, add it to array3
-                if (matchingItem) {
-                    // finalArray.push({
-                    //     ...matchingItem
-                    // });
-                } else if(!matchingItem){
-                    finalArray.push({
-                        ...item1
-                    });
+                if(material_name === "TA"){
+                    const matchingItem = lots.lots.find(item2 => item2.purchase_number === item1.ta_purchase_id);
+                    console.log("Printing matchingItem: ", matchingItem);
+                    // If a match is found, add it to array3
+                    if (matchingItem) {
+                        // finalArray.push({
+                        //     ...matchingItem
+                        // });
+                    } else if(!matchingItem){
+                        finalArray.push({
+                            ...item1
+                        });
+                    }
+                } else if(material_name === "W"){
+                    const matchingItem = lots.lots.find(item2 => item2.purchase_number === item1.wo3_purchase_id);
+                    console.log("Printing matchingItem: ", matchingItem);
+                    // If a match is found, add it to array3
+                    if (matchingItem) {
+                        // finalArray.push({
+                        //     ...matchingItem
+                        // });
+                    } else if(!matchingItem){
+                        finalArray.push({
+                            ...item1
+                        });
+                    }
+                } else if(material_name === "Sn"){
+                    const matchingItem = lots.lots.find(item2 => item2.purchase_number === item1.sn_purchase_id);
+                    console.log("Printing matchingItem: ", matchingItem);
+                    // If a match is found, add it to array3
+                    if (matchingItem) {
+                        // finalArray.push({
+                        //     ...matchingItem
+                        // });
+                    } else if(!matchingItem){
+                        finalArray.push({
+                            ...item1
+                        });
+                    }
                 }
+                
               });
 
             // console.log(lots);
