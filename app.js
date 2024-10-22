@@ -28,6 +28,7 @@ app.use(require('./routes/purchases/exportDailyPurchasesToExcel'));
 app.use(require('./routes/lots/lots-routes'));
 app.use(require('./routes/lots/importLotsFromExcel'));
 app.use(require('./routes/results/importResultsFromExcel'));
+app.use(require('./routes/stats/depot-stats-routes'));
 
 
 app.use(require('./routes/users/userLogin'));

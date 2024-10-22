@@ -88,6 +88,30 @@ router.get('/getDetailedLots', async (req, res) => {
     }
 });
 
+router.get('/getDetailedLotsWithoutLotNumber', async (req, res) => {
+    try {
+        let material_name = req.query.material_name;
+        const query = `select lot_number, purchase_number, date, company_name, mass, material_name, material_percentage, price_per_kg, comments as remarks, amount_in_usd as total_amount from detailed_lots where lot_number IS NULL AND material_name='${material_name}';`;
+        twt.query(query, (err, lotNumber) => {
+            res.json({lots: lotNumber})
+        })
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+router.get('/getLastLotNumber', async (req, res) => {
+    try {
+        let material_name = req.query.material_name;
+        const query = `select lot_number from detailed_lots where material_name='${material_name}' ORDER BY lot_number DESC LIMIT 1;`;
+        twt.query(query, (err, lot) => {
+            res.json({lots: lot})
+        })
+    } catch (error) {
+        console.error(error);
+    }
+});
+
 router.post('/createDetailedLots', async (req, res) => {
     try {
         const data = req.body;
@@ -162,7 +186,7 @@ router.get('/getDetailedLotsByLotNumber', async (req, res) => {
     try {
         const lot_number = req.query.lot_number;
         const material_name = req.query.material_name;
-        
+
         const query = `select lot_number, purchase_number, date, company_name, mass, material_name, material_percentage, price_per_kg, comments as remarks, amount_in_usd as total_amount from detailed_lots WHERE material_name = '${material_name}' AND lot_number=${lot_number};`;
         twt.query(query, (err, lot) => {
             res.json({lots: lot})

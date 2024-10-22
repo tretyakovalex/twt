@@ -149,7 +149,9 @@ router.get('/getResultsToUpdateByDate', async (req, res) => {
     } catch (error) {
         console.error(error);
     }
-})
+});
+
+
 
 router.get('/getResultsForLots', async (req, res) => {
     try {
@@ -166,20 +168,24 @@ router.get('/getResultsForLots', async (req, res) => {
 
             let finalArray = [];
 
-            console.log("Printing lots:");
-            console.table(lots.lots);
+            // console.log("Printing lots:");
+            // console.table(lots.lots);
 
             result.forEach(item1 => {
                 // Find the matching object in the second array
-                if(material_name === "TA"){
+                if(lots.lots.some(item => item.material_name === "TA")){
+                    // console.log("Inside TA if statement:");
+                    // const matchingItem = lots.lots.find(item2 => item2.purchase_number === item1.ta_purchase_id);
                     const matchingItem = lots.lots.find(item2 => item2.purchase_number === item1.ta_purchase_id);
                     console.log("Printing matchingItem: ", matchingItem);
                     // If a match is found, add it to array3
                     if (matchingItem) {
+                        
                         // finalArray.push({
                         //     ...matchingItem
                         // });
                     } else if(!matchingItem){
+                        console.log("Printing not matching item: ", !matchingItem);
                         finalArray.push({
                             ...item1
                         });
