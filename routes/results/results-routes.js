@@ -22,9 +22,9 @@ router.get('/getResultsBySampleNumber', async (req, res) => {
 router.post('/addResults', async (req, res) => {
     // const data = req.body;
     try {
-        const rows = req.body;
-        const columns = Object.keys(data);
-        const values = Object.values(data);
+        const data = req.body;
+        // const columns = Object.keys(data);
+        // const values = Object.values(data);
 
         // console.log("Printing columns: ");
         // console.log(columns);
@@ -32,30 +32,32 @@ router.post('/addResults', async (req, res) => {
         // console.log("Printing values: ");
         // console.log(values);
 
-        const query = `
-            INSERT INTO results
-            (${columns.join(', ')})
-            VALUES
-            (${Array(columns.length).fill('?').join(', ')})
-            `;
+        // const query = `
+        //     INSERT INTO results
+        //     (${columns.join(', ')})
+        //     VALUES
+        //     (${Array(columns.length).fill('?').join(', ')})
+        //     `;
+
+        const query = `INSERT INTO results SET ?`;
 
         console.log(query);
 
-        // twt.query(query, values, (err, result) => {
-        //     if (err) {
-        //         if (err.code === 'ER_DUP_ENTRY') {
-        //             return res.status(400).json({
-        //                 success: false,
-        //                 message: 'Duplicate entry: The sample_number already added to results.'
-        //             });
-        //         } else {
-        //             console.log(err);
-        //             return res.status(500).send({message: 'Internal Server Error'});
-        //         }
-        //     }
+        twt.query(query, data, (err, result) => {
+            if (err) {
+                // if (err.code === 'ER_DUP_ENTRY') {
+                //     return res.status(400).json({
+                //         success: false,
+                //         message: 'Duplicate entry: The sample_number already added to results.'
+                //     });
+                // } else {
+                    console.log(err);
+                    return res.status(500).send({message: 'Internal Server Error'});
+                // }
+            }
 
-        //     res.json({ results: result });
-        // });
+            res.json({ results: result });
+        });
     } catch (error) {
         console.error(error);
         return res.status(500).send('Internal Server Error');
@@ -74,7 +76,7 @@ router.put('/updateResults', async (req, res) => {
 
         // Add individual UPDATE queries for each row
         rows.forEach((row) => {
-            updateQuery += `UPDATE results SET date = '${row.date}', sample_number = '${row.sample_number}', contract_number = '${row.contract_number}', material = '${row.material}', mass = '${row.mass}', company_name = '${row.company_name}', itsci_number = '${row.itsci_number}', remarks = '${row.remarks}', twt_ta2o5 = '${row.twt_ta2o5}', twt_nb2o5 = '${row.twt_nb2o5}', twt_sn = '${row.twt_sn}', twt_wo3 = '${row.twt_wo3}', twt_ra = '${row.twt_ra}', gsaContractNumber = '${row.gsaContractNumber}', gsa_ta2o5 = '${row.gsa_ta2o5}', gsa_nb2o5 = '${row.gsa_nb2o5}', gsa_sn = '${row.gsa_sn}', gsa_wo3 = '${row.gsa_wo3}', gsa_ra = '${row.gsa_ra}', gsa_moisture = '${row.gsa_moisture}', asi_ta2o5 = '${row.asi_ta2o5}', asi_nb2o5 = '${row.asi_nb2o5}', asi_sn = '${row.asi_sn}', asi_wo3 = '${row.asi_wo3}', asi_ra = '${row.asi_ra}' WHERE sample_number = '${row.sample_number}';`;
+            updateQuery += `UPDATE results SET date = '${row.date}', sample_number = '${row.sample_number}', contract_number = '${row.contract_number}', material = '${row.material}', mass = '${row.mass}', company_name = '${row.company_name}', itsci_number = '${row.itsci_number}', remarks = '${row.remarks}', twt_ta2o5 = '${row.twt_ta2o5}', twt_nb2o5 = '${row.twt_nb2o5}', twt_sn = '${row.twt_sn}', twt_wo3 = '${row.twt_wo3}', twt_be = '${row.twt_be}', twt_li = '${row.twt_li}', twt_bq_per_gram = '${row.twt_bq_per_gram}', gsaContractNumber = '${row.gsaContractNumber}', gsa_ta2o5 = '${row.gsa_ta2o5}', gsa_nb2o5 = '${row.gsa_nb2o5}', gsa_sn = '${row.gsa_sn}', gsa_wo3 = '${row.gsa_wo3}', gsa_be = '${row.gsa_be}', gsa_li = '${row.gsa_li}', gsa_bq_per_gram = '${row.gsa_bq_per_gram}', gsa_moisture = '${row.gsa_moisture}', asi_ta2o5 = '${row.asi_ta2o5}', asi_nb2o5 = '${row.asi_nb2o5}', asi_sn = '${row.asi_sn}', asi_wo3 = '${row.asi_wo3}', asi_be = '${row.asi_be}', asi_li = '${row.asi_li}', asi_bq_per_gram = '${row.asi_bq_per_gram}' WHERE sample_number = '${row.sample_number}';`;
         });
 
         // Add the COMMIT statement
@@ -123,7 +125,8 @@ router.get('/getResultsToAddByDate', async (req, res) => {
     }
     console.log("Printing date: ", date);
     try {
-        const query = `SELECT date, sample_number, material, company_name, mass FROM registrations WHERE date=?`;
+        // const query = `SELECT offer_number, date, sample_number, material, company_name, mass FROM registrations WHERE date=?`;
+        const query = `SELECT r.offer_number, r.date, r.sample_number, r.material, r.company_name, r.mass FROM registrations r WHERE date=? AND NOT EXISTS (SELECT 1 FROM results rs WHERE r.offer_number = rs.offer_number);`;
         twt.query(query, date, (err, result) => {
             res.json({results: result})
         })
