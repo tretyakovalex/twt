@@ -19,6 +19,19 @@ router.get('/getResultsBySampleNumber', async (req, res) => {
     }
 });
 
+router.get('/getSampleNumbersFromResultsByDate', async (req, res) => {
+    const date = req.query.date;
+    console.log(date);
+    try {
+        let query = `SELECT DISTINCT res.sample_number FROM results res WHERE res.date = ?`;
+        twt.query(query, [date], (err, result) => {
+            res.json({sampleNumbers: result})
+        })
+    } catch (error) {
+        console.error(error);
+    }
+});
+
 router.post('/addResults', async (req, res) => {
     // const data = req.body;
     try {
@@ -106,7 +119,9 @@ router.get('/getResultSampleNumbersByDate', async (req, res) => {
     const date = req.query.date;
     console.log(date);
     try {
-        twt.query('SELECT DISTINCT sample_number FROM results WHERE date=?', [date], (err, result) => {
+        // let query = `SELECT DISTINCT sample_number FROM results AND sample_number WHERE date=?`;
+        let query = `SELECT DISTINCT res.sample_number FROM results res WHERE res.date = ? AND res.sample_number NOT IN (SELECT pur.sample_number FROM purchases pur);`;
+        twt.query(query, [date], (err, result) => {
             res.json({sampleNumbers: result})
         })
     } catch (error) {

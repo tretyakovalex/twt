@@ -26,16 +26,41 @@ router.get('/getLastPurchasingSettings', async (req, res) => {
 router.post('/addPurchasingSettings', async (req, res) => {
     try {
         const data = req.body;
-        // const query = `INSERT INTO purchasing_settings SET ?`
-        const query = `
-            INSERT INTO purchasing_settings (date, coefficient, exchange_rate_frw_to_usd, rma_fees_frw_per_kg)
-            VALUES (?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE
-                coefficient = VALUES(coefficient),
-                exchange_rate_frw_to_usd = VALUES(exchange_rate_frw_to_usd),
-                rma_fees_frw_per_kg = VALUES(rma_fees_frw_per_kg)`;
+        console.log(data);
 
-        twt.query(query, [data.date, data.coefficient, data.exchange_rate_frw_to_usd, data.rma_fees_frw_per_kg], (err, result) => {
+        const query = `
+            INSERT INTO purchasing_settings (
+            date,
+            ta_coefficient,
+            exchange_rate_frw_to_usd,
+            ta_rma_fees_frw_per_kg,
+            w_mtu,
+            w_rma_fees_frw_per_kg,
+            lme,
+            tc,
+            sn_rma_fees_frw_per_kg,
+            be_mtu,
+            be_rma_fees_frw_per_kg,
+            li_mtu,
+            li_rma_fees_frw_per_kg
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                ta_coefficient = VALUES(ta_coefficient),
+                exchange_rate_frw_to_usd = VALUES(exchange_rate_frw_to_usd),
+                ta_rma_fees_frw_per_kg = VALUES(ta_rma_fees_frw_per_kg),
+                w_mtu = VALUES(w_mtu), 
+                w_rma_fees_frw_per_kg = VALUES(w_rma_fees_frw_per_kg),
+                lme = VALUES(lme),
+                tc = VALUES(tc),
+                sn_rma_fees_frw_per_kg = VALUES(sn_rma_fees_frw_per_kg),
+                be_mtu = VALUES(be_mtu),
+                be_rma_fees_frw_per_kg = VALUES(be_rma_fees_frw_per_kg),
+                li_mtu = VALUES(li_mtu),
+                li_rma_fees_frw_per_kg = VALUES(li_rma_fees_frw_per_kg)
+                `;
+
+        twt.query(query, [data.date, data.ta_coefficient, data.exchange_rate_frw_to_usd, data.ta_rma_fees_frw_per_kg, data.w_mtu, data.w_rma_fees_frw_per_kg, data.lme, data.tc, data.sn_rma_fees_frw_per_kg, data.be_mtu, data.be_rma_fees_frw_per_kg, data.li_mtu, data.li_rma_fees_frw_per_kg], (err, result) => {
             if (err) {
                 console.log(err);
                 return res.status(500).send('Internal Server Error');

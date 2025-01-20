@@ -25,8 +25,10 @@
         <div class="top">
             <h4>Government Tax for purchase № {{purchase_number}} TAWOTIN – {{material_type}}</h4>
             <p>Exchange Rate: {{exchange_rate_rwf_usd}} RWF / USD</p>
-            <p><i>RMA Payment ( {{rma_payment_rwf_per_kg}} RWF / kg ):________{{rma_payment_total_rwf}}__________RWF</i></p>
-            <p><i>RRA Payment ( 3% ): _____{{rma_payment_three_percent_usd}} USD   or  {{rma_payment_three_percent_rwf}}_RWF___</i></p>
+            {{!-- <p><i>RMA Payment ( {{rma_payment_rwf_per_kg}} RWF / kg ):________{{rma_payment_total_rwf}}__________RWF</i></p> --}}
+            {{!-- <p><i>RRA Payment ( 3% ): _____{{rma_payment_three_percent_usd}} USD   or  {{rma_payment_three_percent_rwf}}_RWF___</i></p> --}}
+            <p><i>RMA Payment ( {{rma_payment_rwf_per_kg}} RWF / kg ):__________________RWF</i></p>
+            <p><i>RRA Payment ( 3% ): _______________ USD or _____________ RWF</i></p>
             <p>Client Net payment: <strong>{{client_net_payment}} USD</strong></p>
         </div>
 
@@ -38,7 +40,7 @@
             <h3>{{company_name}}</h3>
             <h3>{{purchase_mass}}</h3>
             <h4>{{date}}</h4>
-            <h4>№ of bags: {{number_of_bags}}</h4>
+            <h4>№ of bags: ________</h4>
         </div>
     </div>
 </body>
