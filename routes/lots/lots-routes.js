@@ -91,7 +91,19 @@ router.get('/getDetailedLots', async (req, res) => {
 router.get('/getDetailedLotsWithoutLotNumber', async (req, res) => {
     try {
         let material_name = req.query.material_name;
-        const query = `select lot_number, purchase_number, date, company_name, mass, material_name, material_percentage, price_per_kg, comments as remarks, amount_in_usd as total_amount from detailed_lots where lot_number IS NULL AND material_name='${material_name}';`;
+        
+        // Add MTU for Tungsten, LME and TC for Tin in query
+        // Split into differenet queries based on the material_name
+        let query = ``;
+
+        if(material_name === "TA"){
+            query = `select lot_number, purchase_number, date, company_name, mass, material_name, material_percentage, price_per_kg, mtu, comments as remarks, amount_in_usd as total_amount from detailed_lots where lot_number IS NULL AND material_name='${material_name}'`;
+        } else if(material_name === "W"){
+        query = `select lot_number, purchase_number, date, company_name, mass, material_name, material_percentage, price_per_kg, mtu, lme, tc, comments as remarks, amount_in_usd as total_amount from detailed_lots where lot_number IS NULL AND material_name='${material_name}';`;
+        } else if(material_name === "Sn"){
+            query = `select lot_number, purchase_number, date, company_name, mass, material_name, material_percentage, price_per_kg, mtu, lme, tc, comments as remarks, amount_in_usd as total_amount from detailed_lots where lot_number IS NULL AND material_name='${material_name}';`;
+        }
+
         twt.query(query, (err, lotNumber) => {
             res.json({lots: lotNumber})
         })
@@ -111,6 +123,28 @@ router.get('/getLastLotNumber', async (req, res) => {
         console.error(error);
     }
 });
+
+router.post('/createdDetailedLotsFromPurchase', async (req, res) => {
+    try {
+        const data = req.body;
+
+        // const query = `INSERT INTO detailed_purchases (purchase_number, date, company_name, mass, material_name, material_percentage, price_per_kg, comment, amount_in_usd, Nb2o5, bq_per_kg, mtu, lme, tc) VALUES ?`;
+        const query = `INSERT INTO detailed_lots SET ?`;
+
+        console.log(data);
+
+        // twt.query(query, [data.purchase_number, data.date, data.company_name, data.mass, data.material_name, data.material_percentage, data.price_per_kg, data.comment, data.amount_in_usd, data.Nb2o5, data.bq_per_kg, data.mtu, data.lme, data.tc], async (err, detailed_lots) => {
+        twt.query(query, data, (err, detailed_lots) => {
+            if(err){
+                console.error(err);
+            }
+
+            res.json("Successfully added data from purchase");
+        })
+    } catch (error) {
+        console.error(error);
+    }
+})
 
 router.post('/createDetailedLots', async (req, res) => {
     try {

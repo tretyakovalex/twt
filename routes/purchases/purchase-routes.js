@@ -482,56 +482,68 @@ router.get('/get_Purchase_By_Sample_Number', async (req, res) => {
 router.get('/get_Purchase_Info_By_Sample_Number', async (req, res) => {
     try {
         const sample_number = req.query.sample_number;
-        const query = `SELECT reg.company_name, reg.mass, reg.material, res.twt_ta2o5, res.twt_wo3, res.twt_sn, res.twt_be, res.twt_li, c.tunnels FROM registrations reg JOIN results res ON reg.sample_number=res.sample_number JOIN companies c ON reg.company_name=c.company_name WHERE reg.sample_number=?;`
+        const query = `SELECT
+                            reg.company_name, reg.mass, reg.material,
+                            res.twt_ta2o5, res.twt_wo3, res.twt_sn, res.twt_be, res.twt_li,
+                            c.tunnels, c.district
+                        FROM registrations reg
+                        JOIN results res ON reg.registration_id = res.registration_id
+                        JOIN companies c ON reg.company_name = c.company_name
+                        WHERE reg.sample_number = ?;
+        `
         twt.query(query, [sample_number], (err, result) => {
             if (err) {
                 console.log(err);
                 return res.status(500).send('Internal Server Error');
             }
             let modifiedResult = [];
-            console.log("printing result[0]: ", result[0]);
+            console.log("printing result: ", result);
 
-            if(result[0].material === "TA"){
-                modifiedResult.push({
-                    company_name: result[0].company_name,
-                    mass: result[0].mass,
-                    material_name: result[0].material,
-                    material_percentage: result[0].twt_ta2o5 || 0,
-                    tunnels: result[0].tunnels
-                })
-            } else if (result[0].material === "Sn" || result[0].material === "SN"){
-                modifiedResult.push({
-                    company_name: result[0].company_name,
-                    mass: result[0].mass,
-                    material_name: result[0].material,
-                    material_percentage: result[0].twt_sn || 0,
-                    tunnels: result[0].tunnels
-                })
-            } else if (result[0].material === "WO3" || result[0].material === "W"){
-                modifiedResult.push({
-                    company_name: result[0].company_name,
-                    mass: result[0].mass,
-                    material_name: result[0].material,
-                    material_percentage: result[0].twt_wo3 || 0,
-                    tunnels: result[0].tunnels
-                })
-            } else if (result[0].material === "Be"){
-                modifiedResult.push({
-                    company_name: result[0].company_name,
-                    mass: result[0].mass,
-                    material_name: result[0].material,
-                    material_percentage: result[0].twt_be || 0,
-                    tunnels: result[0].tunnels
-                })
-            } else if (result[0].material === "Li"){
-                modifiedResult.push({
-                    company_name: result[0].company_name,
-                    mass: result[0].mass,
-                    material_name: result[0].material,
-                    material_percentage: result[0].twt_li || 0,
-                    tunnels: result[0].tunnels
-                })
-            }
+            result.forEach(item => {
+                if(item.material === "TA"){
+                    modifiedResult.push({
+                        company_name: item.company_name,
+                        mass: item.mass,
+                        material_name: item.material,
+                        material_percentage: item.twt_ta2o5 || 0,
+                        tunnels: item.tunnels
+                    })
+                } else if (item.material === "Sn" || item.material === "SN"){
+                    modifiedResult.push({
+                        company_name: item.company_name,
+                        mass: item.mass,
+                        material_name: item.material,
+                        material_percentage: item.twt_sn || 0,
+                        tunnels: item.tunnels
+                    })
+                } else if (item.material === "WO3" || item.material === "W"){
+                    modifiedResult.push({
+                        company_name: item.company_name,
+                        mass: item.mass,
+                        material_name: item.material,
+                        material_percentage: item.twt_wo3 || 0,
+                        tunnels: item.tunnels
+                    })
+                } else if (item.material === "Be"){
+                    modifiedResult.push({
+                        company_name: item.company_name,
+                        mass: item.mass,
+                        material_name: item.material,
+                        material_percentage: item.twt_be || 0,
+                        tunnels: item.tunnels
+                    })
+                } else if (item.material === "Li"){
+                    modifiedResult.push({
+                        company_name: item.company_name,
+                        mass: item.mass,
+                        material_name: item.material,
+                        material_percentage: item.twt_li || 0,
+                        tunnels: item.tunnels
+                    })
+                }
+            })
+
+            
             
             res.json({purchases: modifiedResult})
         })

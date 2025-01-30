@@ -33,86 +33,109 @@ router.get('/getSampleNumbersFromResultsByDate', async (req, res) => {
 });
 
 router.post('/addResults', async (req, res) => {
-    // const data = req.body;
     try {
         const data = req.body;
-        // const columns = Object.keys(data);
-        // const values = Object.values(data);
 
-        // console.log("Printing columns: ");
-        // console.log(columns);
+        if (!Array.isArray(data) || data.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid input: Expected a non-empty array of results.',
+            });
+        }
 
-        // console.log("Printing values: ");
-        // console.log(values);
+        // Extract columns from the first object in the array
+        const columns = Object.keys(data[0]);
 
-        // const query = `
-        //     INSERT INTO results
-        //     (${columns.join(', ')})
-        //     VALUES
-        //     (${Array(columns.length).fill('?').join(', ')})
-        //     `;
+        // Construct the query for multiple rows
+        const values = data.map((row) => columns.map((col) => row[col]));
+        const placeholders = values.map(() => `(${columns.map(() => '?').join(', ')})`).join(', ');
 
-        const query = `INSERT INTO results SET ?`;
+        const query = `
+            INSERT INTO results (${columns.join(', ')})
+            VALUES ${placeholders}
+        `;
 
-        console.log(query);
+        // Flatten the values array for parameterized query
+        const flattenedValues = values.flat();
 
-        twt.query(query, data, (err, result) => {
+        console.log('Executing query:', query);
+
+        twt.query(query, flattenedValues, (err, result) => {
             if (err) {
-                // if (err.code === 'ER_DUP_ENTRY') {
-                //     return res.status(400).json({
-                //         success: false,
-                //         message: 'Duplicate entry: The sample_number already added to results.'
-                //     });
-                // } else {
-                    console.log(err);
-                    return res.status(500).send({message: 'Internal Server Error'});
-                // }
+                console.error(err);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Internal Server Error',
+                });
             }
 
-            res.json({ results: result });
+            res.json({
+                success: true,
+                message: 'Results inserted successfully',
+                affectedRows: result.affectedRows,
+            });
         });
     } catch (error) {
         console.error(error);
         return res.status(500).send('Internal Server Error');
     }
 });
+
 
 router.put('/updateResults', async (req, res) => {
     try {
-        const rows = req.body;
-        console.log(rows);
+        const data = req.body;
 
-        // Begin constructing the SQL transaction
-        // let updateQuery = `START TRANSACTION;`;
-        // let updateQuery = `SET SQL_SAFE_UPDATES = 0;`;
-        let updateQuery = ``;
+        if (!Array.isArray(data) || data.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid input: Expected a non-empty array of results.',
+            });
+        }
 
-        // Add individual UPDATE queries for each row
-        rows.forEach((row) => {
-            updateQuery += `UPDATE results SET date = '${row.date}', sample_number = '${row.sample_number}', contract_number = '${row.contract_number}', material = '${row.material}', mass = '${row.mass}', company_name = '${row.company_name}', itsci_number = '${row.itsci_number}', remarks = '${row.remarks}', twt_ta2o5 = '${row.twt_ta2o5}', twt_nb2o5 = '${row.twt_nb2o5}', twt_sn = '${row.twt_sn}', twt_wo3 = '${row.twt_wo3}', twt_be = '${row.twt_be}', twt_li = '${row.twt_li}', twt_bq_per_gram = '${row.twt_bq_per_gram}', gsaContractNumber = '${row.gsaContractNumber}', gsa_ta2o5 = '${row.gsa_ta2o5}', gsa_nb2o5 = '${row.gsa_nb2o5}', gsa_sn = '${row.gsa_sn}', gsa_wo3 = '${row.gsa_wo3}', gsa_be = '${row.gsa_be}', gsa_li = '${row.gsa_li}', gsa_bq_per_gram = '${row.gsa_bq_per_gram}', gsa_moisture = '${row.gsa_moisture}', asi_ta2o5 = '${row.asi_ta2o5}', asi_nb2o5 = '${row.asi_nb2o5}', asi_sn = '${row.asi_sn}', asi_wo3 = '${row.asi_wo3}', asi_be = '${row.asi_be}', asi_li = '${row.asi_li}', asi_bq_per_gram = '${row.asi_bq_per_gram}' WHERE sample_number = '${row.sample_number}';`;
+        console.log("data: ", data);
+
+        // Extract columns from the first object in the array
+        const columns = Object.keys(data[0]);
+
+        // Construct the individual UPDATE queries
+        const queries = data.map((row) => {
+            const setClause = columns
+                .filter((col) => col !== 'registration_id') // Exclude the WHERE column from SET clause
+                .map((col) => `${col} = ?`)
+                .join(', ');
+
+            return {
+                query: `UPDATE results SET ${setClause} WHERE registration_id = ?`,
+                values: [...columns.filter((col) => col !== 'registration_id').map((col) => row[col]), row.registration_id],
+            };
         });
 
-        // Add the COMMIT statement
-        // updateQuery += 'COMMIT;';
+        console.log("queries: ", queries);
 
-        // Output the combined query for debugging
-        console.log("Printing updateQuery: ");
-        console.table(updateQuery);
-        // const query = `UPDATE results SET ? WHERE sample_number='${data.sample_number}';`;
+        // Execute all queries in parallel using Promise.all
+        const promises = queries.map((q) =>
+            new Promise((resolve, reject) => {
+                twt.query(q.query, q.values, (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result);
+                });
+            })
+        );
 
-        twt.query(updateQuery, (err, result) => {
-            if (err) {
-                console.log(err);
-                return res.status(500).send({message: 'Internal Server Error'});
-            }
+        const results = await Promise.all(promises);
 
-            res.json({ results: result });
+        res.json({
+            success: true,
+            message: 'Results updated successfully',
+            affectedRows: results.reduce((sum, res) => sum + res.affectedRows, 0),
         });
     } catch (error) {
         console.error(error);
         return res.status(500).send('Internal Server Error');
     }
 });
+
 
 // === get registration sample numbers ===
 router.get('/getResultSampleNumbersByDate', async (req, res) => {
@@ -128,6 +151,29 @@ router.get('/getResultSampleNumbersByDate', async (req, res) => {
         console.error(error);
     }
 })
+// =======================================
+
+// === get missing results ===
+router.get('/getMissingResults', async (req, res) => {
+    try {
+        let query = `
+            SELECT DISTINCT reg.sample_number 
+            FROM registrations reg 
+            WHERE reg.sample_number NOT IN (SELECT sample_number FROM results)
+        `;
+        
+        twt.query(query, (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'Database query error' });
+            }
+            res.json({ missing_results: result });
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 // =======================================
 
 router.get('/getResultsToAddByDate', async (req, res) => {

@@ -70,13 +70,15 @@ router.get('/getWDepotStats', async (req, res) => {
 
             let sumMaterialPercentage = detailed_lots.reduce((acc, item) => acc + item.material_percentage, 0);
             let sumAveragePrice = detailed_lots.reduce((acc, item) => acc + item.price_per_kg, 0);
+            let sumMTU = detailed_lots.reduce((acc, item) => acc + item.mtu, 0);
             
             let w_stats = {
                 material_name: "W",
                 totalMass: parseFloat(detailed_lots.reduce((acc, item) => acc + item.mass, 0).toFixed(1)),
                 averageMaterialPercentage: parseFloat((sumMaterialPercentage / detailed_lots.length).toFixed(2)),
                 totalAmount: parseFloat(detailed_lots.reduce((acc, item) => acc + item.amount_in_usd, 0).toFixed(2)),
-                price_per_kg: parseFloat((sumAveragePrice / detailed_lots.length).toFixed(2))
+                price_per_kg: parseFloat((sumAveragePrice / detailed_lots.length).toFixed(2)),
+                MTU: parseFloat((sumMTU / detailed_lots.length).toFixed(2))
             };
 
             res.json(w_stats);
@@ -100,13 +102,17 @@ router.get('/getSnDepotStats', async (req, res) => {
 
             let sumMaterialPercentage = detailed_lots.reduce((acc, item) => acc + item.material_percentage, 0);
             let sumAveragePrice = detailed_lots.reduce((acc, item) => acc + item.price_per_kg, 0);
+            let sumLME = detailed_lots.reduce((acc, item) => acc + item.lme, 0);
+            let sumTC = detailed_lots.reduce((acc, item) => acc + item.tc, 0);
             
             let sn_stats = {
                 material_name: "Sn",
                 totalMass: parseFloat(detailed_lots.reduce((acc, item) => acc + item.mass, 0).toFixed(1)),
                 averageMaterialPercentage: parseFloat((sumMaterialPercentage / detailed_lots.length).toFixed(2)),
                 totalAmount: parseFloat(detailed_lots.reduce((acc, item) => acc + item.amount_in_usd, 0).toFixed(2)),
-                price_per_kg: parseFloat((sumAveragePrice / detailed_lots.length).toFixed(2))
+                price_per_kg: parseFloat((sumAveragePrice / detailed_lots.length).toFixed(2)),
+                LME: parseFloat((sumLME / detailed_lots.length).toFixed(2)),
+                TC: parseFloat((sumTC / detailed_lots.length).toFixed(2))
             };
 
             res.json(sn_stats);

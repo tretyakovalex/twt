@@ -50,12 +50,30 @@ router.get('/getRegistrationsSampleNumbers', async (req, res) => {
 })
 // =======================================
 
+// === get last sample number from registration  ===
+router.get('/getLastSampleNumberFromRegistration', async (req, res) => {
+    const date = req.query.date;
+    console.log(date);
+    try {
+        let query = `SELECT DISTINCT reg.sample_number, reg.registration_id FROM registrations reg ORDER BY reg.registration_id DESC LIMIT 1`;
+        twt.query(query, [date], (err, registration) => {
+            res.json({lastSampleNumber: registration[0].sample_number})
+        })
+    } catch (error) {
+        console.error(error);
+    }
+})
+// =======================================
+
+
 // === get registration sample numbers ===
 router.get('/getSampleNumbersByDate', async (req, res) => {
     const date = req.query.date;
     console.log(date);
     try {
-        twt.query('SELECT DISTINCT sample_number FROM registrations WHERE date=?', [date], (err, result) => {
+        // let query = `SELECT DISTINCT sample_number FROM registrations WHERE date=?`;
+        let query = `SELECT DISTINCT reg.sample_number FROM registrations reg WHERE reg.date = ? AND reg.sample_number NOT IN (SELECT res.sample_number FROM results res)`;
+        twt.query(query, [date], (err, result) => {
             res.json({sampleNumbers: result})
         })
     } catch (error) {
@@ -112,7 +130,7 @@ router.get('/getRegistrationByOfferNumber', async (req, res) => {
 router.get('/getRegistrationBySampleNumber', async (req, res) => {
 const sample_number = req.query.sample_number;
     try {
-        twt.query('SELECT date, sample_number, material, company_name, mass FROM registrations WHERE sample_number = ?', sample_number, (err, result) => {
+        twt.query('SELECT date, sample_number, material, company_name, mass, itsci_number, registration_id FROM registrations WHERE sample_number = ?', sample_number, (err, result) => {
             res.json({registration: result})
         })
     } catch (error) {

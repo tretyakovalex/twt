@@ -53,6 +53,8 @@ async function createDailyPurchaseExcel(purchases){
     const worksheet2 = workbook.addWorksheet('Ta2o5');
     const worksheet3 = workbook.addWorksheet('Sno5');
     const worksheet4 = workbook.addWorksheet('Wo3');
+    const worksheet5 = workbook.addWorksheet('Be');
+    const worksheet6 = workbook.addWorksheet('Li');
 
     // Daily Purchases sheeet
     worksheet1.columns = [
@@ -60,10 +62,14 @@ async function createDailyPurchaseExcel(purchases){
         { header: "Ta", key: 'ta_material_percentage', width: 10 },
         { header: "Sn", key: 'sn_material_percentage', width: 10 },
         { header: "W", key: 'w_material_percentage', width: 10 },
+        { header: "Be", key: 'be_material_percentage', width: 10 },
+        { header: "Li", key: 'li_material_percentage', width: 10 },
         { header: 'Name', key: 'company_name', width: 30 },
         { header: 'Coltan kg', key: 'ta_mass', width: 10 },
         { header: 'Sn kg', key: 'sn_mass', width: 10 },
         { header: 'Wolfram Kg', key: 'w_mass', width: 10 },
+        { header: 'Beryllium Kg', key: 'be_mass', width: 10 },
+        { header: 'Lithium Kg', key: 'li_mass', width: 10 },
         { header: 'Credit Cash', key: 'total_amount', width: 30 }
     ];
 
@@ -103,6 +109,30 @@ async function createDailyPurchaseExcel(purchases){
         { header: "Name", key: 'company_name', width: 30 },
         { header: 'Mass, kg', key: 'mass', width: 10 },
         { header: 'Wo3', key: 'w_material_percentage', width: 10 },
+        { header: 'Price, $/kg', key: 'price_per_kg', width: 10 },
+        { header: 'Comments', key: 'comments', width: 20 },
+        { header: 'Amount, $', key: 'total_amount', width: 20 }
+    ];
+    
+    //Beryllium sheet
+    worksheet5.columns = [
+        { header: "Purchase No", key: 'be_purchase_id', width: 10 },
+        { header: "Date", key: 'purchase_date', width: 10 },
+        { header: "Name", key: 'company_name', width: 30 },
+        { header: 'Mass, kg', key: 'mass', width: 10 },
+        { header: 'Beryllium', key: 'be_material_percentage', width: 10 },
+        { header: 'Price, $/kg', key: 'price_per_kg', width: 10 },
+        { header: 'Comments', key: 'comments', width: 20 },
+        { header: 'Amount, $', key: 'total_amount', width: 20 }
+    ];
+    
+    //Lithium sheet
+    worksheet6.columns = [
+        { header: "Purchase No", key: 'li_purchase_id', width: 10 },
+        { header: "Date", key: 'purchase_date', width: 10 },
+        { header: "Name", key: 'company_name', width: 30 },
+        { header: 'Mass, kg', key: 'mass', width: 10 },
+        { header: 'Lithium', key: 'li_material_percentage', width: 10 },
         { header: 'Price, $/kg', key: 'price_per_kg', width: 10 },
         { header: 'Comments', key: 'comments', width: 20 },
         { header: 'Amount, $', key: 'total_amount', width: 20 }
@@ -151,7 +181,7 @@ async function createDailyPurchaseExcel(purchases){
                 comments: "",
                 total_amount: Number(item.total_amount)
             })
-        }else if (item.material_name === "W"){
+        } else if (item.material_name === "W"){
             worksheet1.addRow({ 
                 // purchase_id: item.w_purchase_id,
                 company_name: item.company_name,
@@ -165,6 +195,42 @@ async function createDailyPurchaseExcel(purchases){
                 company_name: item.company_name,
                 mass: Number(item.mass),
                 w_material_percentage: Number(item.material_percentage),
+                price_per_kg: Number(item.price_per_kg),
+                comments: "",
+                total_amount: Number(item.total_amount)
+            })
+        } else if (item.material_name === "Be"){
+            worksheet1.addRow({ 
+                // purchase_id: item.w_purchase_id,
+                company_name: item.company_name,
+                be_material_percentage: Number(item.material_percentage),
+                be_mass: Number(item.mass),
+                total_amount: Number(item.total_amount)
+            })
+            worksheet5.addRow({
+                be_purchase_id: item.be_purchase_id,
+                purchase_date: item.purchase_date,
+                company_name: item.company_name,
+                mass: Number(item.mass),
+                be_material_percentage: Number(item.material_percentage),
+                price_per_kg: Number(item.price_per_kg),
+                comments: "",
+                total_amount: Number(item.total_amount)
+            })
+        } else if (item.material_name === "Li"){
+            worksheet1.addRow({ 
+                // purchase_id: item.w_purchase_id,
+                company_name: item.company_name,
+                li_material_percentage: Number(item.material_percentage),
+                li_mass: Number(item.mass),
+                total_amount: Number(item.total_amount)
+            })
+            worksheet6.addRow({
+                li_purchase_id: item.li_purchase_id,
+                purchase_date: item.purchase_date,
+                company_name: item.company_name,
+                mass: Number(item.mass),
+                li_material_percentage: Number(item.material_percentage),
                 price_per_kg: Number(item.price_per_kg),
                 comments: "",
                 total_amount: Number(item.total_amount)

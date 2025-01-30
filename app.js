@@ -34,6 +34,8 @@ app.use(require('./routes/stats/depot-stats-routes'));
 app.use(require('./routes/users/userLogin'));
 app.use(require('./routes/users/userRegistration'));
 
+app.use(require('./routes/purchases/exportAllPurchasesToExcel'));
+
 
 // === Frontend: ===
 // =================

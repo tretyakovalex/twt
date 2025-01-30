@@ -41,7 +41,8 @@ router.post('/importPurchasesFromExcel', async (req, res) => {
             wo3_purchase_id: null,
             sn_purchase_id: null,
             Nb2O5: item.Nb || null,
-            bq_per_gram: item.Bq || null
+            bq_per_gram: item.Bq || null,
+
         })
     });
 
@@ -68,7 +69,8 @@ router.post('/importPurchasesFromExcel', async (req, res) => {
             wo3_purchase_id: item.purchase_id,
             sn_purchase_id: null,
             Nb2O5: null,
-            bq_per_gram: null
+            bq_per_gram: null,
+            mtu: item.MTU
         })
     });
 
@@ -95,7 +97,9 @@ router.post('/importPurchasesFromExcel', async (req, res) => {
             wo3_purchase_id: null,
             sn_purchase_id: item.purchase_id,
             Nb2O5: null,
-            bq_per_gram: null
+            bq_per_gram: null,
+            lme: item.LME, 
+            tc: item.TC
         })
     });
 
@@ -104,9 +108,9 @@ router.post('/importPurchasesFromExcel', async (req, res) => {
         return moment(a.purchase_date).isBefore(moment(b.purchase_date)) ? -1 : 1;
     });
 
-    const insertQuery = `INSERT INTO purchases (sample_number, sample_and_company_number, purchase_date, results_date, company_name, company_tunnel, mass, material_percentage, price_per_kg, total_amount, itsci_mine_site_number, rma_frw, rma_usd, total_minus_rma_usd, usd_per_pound, material_name, ta_purchase_id, wo3_purchase_id, sn_purchase_id, Nb2O5, bq_per_gram) VALUES ?`;
+    const insertQuery = `INSERT INTO purchases (sample_number, sample_and_company_number, purchase_date, results_date, company_name, company_tunnel, mass, material_percentage, price_per_kg, total_amount, itsci_mine_site_number, rma_frw, rma_usd, total_minus_rma_usd, usd_per_pound, material_name, ta_purchase_id, wo3_purchase_id, sn_purchase_id, Nb2O5, bq_per_gram, mtu, lme, tc) VALUES ?`;
 
-    const values = formattedPurchase.map(purchase => [purchase.sample_number, purchase.sample_and_company_number, purchase.purchase_date, purchase.results_date, purchase.company_name, purchase.company_tunnel, purchase.mass, purchase.material_percentage, purchase.price_per_kg, purchase.total_amount, purchase.itsci_mine_site_number, purchase.rma_frw, purchase.rma_usd, purchase.total_minus_rma_usd, purchase.usd_per_pound, purchase.material_name, purchase.ta_purchase_id, purchase.wo3_purchase_id, purchase.sn_purchase_id, purchase.Nb2O5, purchase.bq_per_gram]);
+    const values = formattedPurchase.map(purchase => [purchase.sample_number, purchase.sample_and_company_number, purchase.purchase_date, purchase.results_date, purchase.company_name, purchase.company_tunnel, purchase.mass, purchase.material_percentage, purchase.price_per_kg, purchase.total_amount, purchase.itsci_mine_site_number, purchase.rma_frw, purchase.rma_usd, purchase.total_minus_rma_usd, purchase.usd_per_pound, purchase.material_name, purchase.ta_purchase_id, purchase.wo3_purchase_id, purchase.sn_purchase_id, purchase.Nb2O5, purchase.bq_per_gram, purchase.mtu, purchase.lme, purchase.tc]);
 
     twt.query(insertQuery, [values], (err, purchase) => {
         if(err){
