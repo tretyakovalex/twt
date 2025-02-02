@@ -157,9 +157,9 @@ router.get('/getResultSampleNumbersByDate', async (req, res) => {
 router.get('/getMissingResults', async (req, res) => {
     try {
         let query = `
-            SELECT DISTINCT reg.sample_number 
+            SELECT DISTINCT reg.sample_number, reg.registration_id
             FROM registrations reg 
-            WHERE reg.sample_number NOT IN (SELECT sample_number FROM results)
+            WHERE reg.sample_number NOT IN (SELECT sample_number FROM results) ORDER BY reg.registration_id DESC
         `;
         
         twt.query(query, (err, result) => {
@@ -187,7 +187,7 @@ router.get('/getResultsToAddByDate', async (req, res) => {
     console.log("Printing date: ", date);
     try {
         // const query = `SELECT offer_number, date, sample_number, material, company_name, mass FROM registrations WHERE date=?`;
-        const query = `SELECT r.offer_number, r.date, r.sample_number, r.material, r.company_name, r.mass FROM registrations r WHERE date=? AND NOT EXISTS (SELECT 1 FROM results rs WHERE r.offer_number = rs.offer_number);`;
+        const query = `SELECT r.offer_number, r.date, r.sample_number, r.material, r.company_name, r.mass, r.registration_id FROM registrations r WHERE date=? AND NOT EXISTS (SELECT 1 FROM results rs WHERE r.offer_number = rs.offer_number);`;
         twt.query(query, date, (err, result) => {
             res.json({results: result})
         })
