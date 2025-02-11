@@ -5,14 +5,64 @@ const moment = require('moment');
 const { twt } = require('../../configs/mysql');
 
 router.get('/getResultsBySampleNumber', async (req, res) => {
-    const sample_number = req.query.sample_number;
+    const date = req.query.date;
+    console.log(date);
     try {
-        twt.query('SELECT * FROM results WHERE sample_number = ?', sample_number, (err, result) => {
+        twt.query('SELECT * FROM results WHERE date = ?', date, (err, results) => {
             if(err){
                 console.error(err);
                 res.status(500).json("Internal Server Error");
             }
-            res.json({result: result})
+            let modifiedResults = [];
+            results.forEach(item => {
+                const material = item.material.toLowerCase(); // Normalize for case-insensitive comparison
+
+                let material_ta = material.includes("ta");
+                let material_sn = material.includes("sn");
+                let material_w = material.includes("w");
+                let material_be = material.includes("be");
+                let material_li = material.includes("li");
+
+                modifiedResults.push({
+                    date: moment(item.date).format('YYYY-MM-DD'),
+                    sample_number: item.sample_number,
+                    offer_number: item.offer_number,
+                    material: item.material,
+                    mass: item.mass,
+                    company_name: item.company_name,
+                    remarks: '', 
+                    twt_ta2o5: material_ta ? item.twt_ta2o5 : '',
+                    twt_nb2o5: material_ta ? item.twt_nb2o5 : '',
+                    twt_sn: material_sn ? item.twt_sn : '',
+                    twt_wo3: material_w ? item.twt_wo3 : '',
+                    twt_be: material_be ? item.twt_be : '',
+                    twt_li: material_li ? item.twt_li : '',
+                    twt_bq_per_gram: material_ta ? item.twt_bq_per_gram : '',
+                    gsaContractNumber: '',
+                    gsa_ta2o5: material_ta ? item.gsa_ta2o5 : '',
+                    gsa_nb2o5: material_ta ? item.gsa_nb2o5 : '',
+                    gsa_sn: material_sn ? item.gsa_sn : '',
+                    gsa_wo3: material_w ? item.gsa_wo3 : '',
+                    gsa_be: material_be ? item.gsa_be : '',
+                    gsa_li: material_li ? item.gsa_li : '',
+                    gsa_bq_per_gram: material_ta ? item.gsa_bq_per_gram : '',
+                    gsa_moisture: '',
+                    asi_ta2o5: material_ta ? item.asi_ta2o5 : '',
+                    asi_nb2o5: material_ta ? item.asi_nb2o5 : '',
+                    asi_sn: material_sn ? item.asi_sn : '',
+                    asi_wo3: material_w ? item.asi_wo3 : '',
+                    asi_be: material_be ? item.asi_be : '',
+                    asi_li: material_be ? item.asi_li : '',
+                    asi_bq_per_gram: material_ta ? item.asi_bq_per_gram : '',
+                    registration_id: item.registration_id,
+                    material_ta,
+                    material_sn,
+                    material_w,
+                    material_be,
+                    material_li
+                });
+            });
+            res.json({ results: modifiedResults });
         })
     } catch (error) {
         console.error(error);

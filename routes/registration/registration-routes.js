@@ -3,6 +3,8 @@ const router = express.Router();
 
 const { twt } = require('../../configs/mysql');
 
+const moment = require('moment');
+
 // === Add to registrations table ===
 
 router.post('/addRegistration', async (req, res) => {
@@ -82,6 +84,72 @@ router.get('/getSampleNumbersByDate', async (req, res) => {
 })
 // =======================================
 
+// === get Registrations By Date Url ===
+router.get('/getRegistrationsByDateUrl', async (req, res) => {
+    const date = req.query.date;
+    console.log(date);
+    try {
+        let query = `SELECT * FROM registrations reg WHERE reg.date = ? AND reg.sample_number NOT IN (SELECT res.sample_number FROM results res)`;
+        twt.query(query, [date], (err, registrations) => {
+
+            let results = [];
+            registrations.forEach(item => {
+                const material = item.material.toLowerCase(); // Normalize for case-insensitive comparison
+
+                let material_ta = material.includes("ta");
+                let material_sn = material.includes("sn");
+                let material_w = material.includes("w");
+                let material_be = material.includes("be");
+                let material_li = material.includes("li");
+
+                results.push({
+                    date: moment(item.date).format('YYYY-MM-DD'),
+                    sample_number: item.sample_number,
+                    offer_number: item.offer_number,
+                    material: item.material,
+                    mass: item.mass,
+                    company_name: item.company_name,
+                    remarks: '', 
+                    twt_ta2o5: '',
+                    twt_nb2o5: '',
+                    twt_sn: '',
+                    twt_wo3: '',
+                    twt_be: '',
+                    twt_li: '',
+                    twt_bq_per_gram: '',
+                    gsaContractNumber: '',
+                    gsa_ta2o5: '',
+                    gsa_nb2o5: '',
+                    gsa_sn: '',
+                    gsa_wo3: '',
+                    gsa_be: '',
+                    gsa_li: '',
+                    gsa_bq_per_gram: '',
+                    gsa_moisture: '',
+                    asi_ta2o5: '',
+                    asi_nb2o5: '',
+                    asi_sn: '',
+                    asi_wo3: '',
+                    asi_be: '',
+                    asi_li: '',
+                    asi_bq_per_gram: '',
+                    registration_id: item.registration_id,
+                    material_ta,
+                    material_sn,
+                    material_w,
+                    material_be,
+                    material_li
+                });
+            });
+            res.json({ results });
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
 // === get last registration from table ===
 
 router.get('/getLastRegistration', async (req, res) => {
@@ -130,8 +198,56 @@ router.get('/getRegistrationByOfferNumber', async (req, res) => {
 router.get('/getRegistrationBySampleNumber', async (req, res) => {
 const sample_number = req.query.sample_number;
     try {
-        twt.query('SELECT date, sample_number, material, company_name, mass, itsci_number, registration_id FROM registrations WHERE sample_number = ?', sample_number, (err, result) => {
-            res.json({registration: result})
+        twt.query('SELECT date, sample_number, material, company_name, mass, registration_id FROM registrations WHERE sample_number = ?', sample_number, (err, registrations) => {
+            let results = [];
+            registrations.forEach(item => {
+                const material = item.material.toLowerCase(); // Normalize for case-insensitive comparison
+
+                let material_ta = material.includes("ta");
+                let material_sn = material.includes("sn");
+                let material_w = material.includes("w");
+                let material_be = material.includes("be");
+                let material_li = material.includes("li");
+
+                results.push({
+                    date: moment(item.date).format('YYYY-MM-DD'),
+                    sample_number: item.sample_number,
+                    material: item.material,
+                    company_name: item.company_name,
+                    mass: item.mass,
+                    remarks: '', 
+                    twt_ta2o5: '',
+                    twt_nb2o5: '',
+                    twt_sn: '',
+                    twt_wo3: '',
+                    twt_be: '',
+                    twt_li: '',
+                    twt_bq_per_gram: '',
+                    gsaContractNumber: '',
+                    gsa_ta2o5: '',
+                    gsa_nb2o5: '',
+                    gsa_sn: '',
+                    gsa_wo3: '',
+                    gsa_be: '',
+                    gsa_li: '',
+                    gsa_bq_per_gram: '',
+                    gsa_moisture: '',
+                    asi_ta2o5: '',
+                    asi_nb2o5: '',
+                    asi_sn: '',
+                    asi_wo3: '',
+                    asi_be: '',
+                    asi_li: '',
+                    asi_bq_per_gram: '',
+                    registration_id: item.registration_id,
+                    material_ta,
+                    material_sn,
+                    material_w,
+                    material_be,
+                    material_li
+                });
+            });
+            res.json({ results });
         })
     } catch (error) {
         console.error(error);
