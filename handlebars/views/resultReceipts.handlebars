@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="./public/stylesheets/purchaseCertificateStyle.css">
+    <title>Document</title>
+</head>
+<body>
+    <div class="page">
+        <div class="title">
+            <h2>Analysis of Mineral Sample Content</h2>
+        </div>
+
+        <div class="top" style="margin-bottom: 50px;">
+            <p><strong>Laboratory: </strong>{{laboratory}}</p>
+            <p><strong>Sample No: </strong>{{sample_number}}</p>
+            <p><strong>Type of material: </strong>{{material_type}}</p>
+            {{#if contract_number}}
+                <p><strong>Certificate No: </strong>{{contract_number}}</p>
+            {{/if}}
+        </div>
+
+        {{!-- <div class="top">
+            <h3>Results:</h3>
+            <p><strong>GSA Lab: </strong></p>
+            <p>Ta2o5: 25.25%</p>
+            <p><strong>TWT Lab: </strong></p>
+            <p>Nb2o5: 25.25%</p>
+            <p>Radioactivity: 5.85 Bq/g</p>
+        </div> --}}
+
+        <div class="top">
+            <h3>Results:</h3>
+
+            {{#if gsa_results}}
+                <p><strong>GSA Lab: </strong></p>
+                {{#each gsa_results}}
+                    <p>{{@key}}: {{this}}</p>
+                {{/each}}
+            {{/if}}
+
+            {{#if asi_results}}
+                <p><strong>ASI Lab: </strong></p>
+                {{#each asi_results}}
+                    <p>{{@key}}: {{this}}</p>
+                {{/each}}
+            {{/if}}
+
+            {{#if results}}
+                <p><strong>TWT Lab: </strong></p>
+                {{#each results}}
+                    {{#if this}}
+                        <p>{{@key}}: {{this}}</p>
+                    {{/if}}
+                {{/each}}
+            {{/if}}
+        </div>
+
+
+        <div class="top" style="margin-top: 50px;">
+            <p><strong>Comment(s):</strong></p>
+            <br>
+            <p>____________________________________________</p>
+            <br>
+            <p>____________________________________________</p>
+        </div>
+
+        <div class="top">
+            <p><strong>Result provided by: </strong>___________________ (Signature)</p>
+            <br>
+            <p><strong>Date of result issuance: </strong>{{date}}</p>
+        </div>
+    </div>
+</body>
+</html>

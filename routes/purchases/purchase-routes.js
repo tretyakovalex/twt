@@ -479,78 +479,188 @@ router.get('/get_Purchase_By_Sample_Number', async (req, res) => {
 })
 
 
+// router.get('/get_Purchase_Info_By_Sample_Number', async (req, res) => {
+//     try {
+//         const sample_number = req.query.sample_number;
+//         const resultFromLab = req.query.resultFromLab;
+//         let query = ``;
+
+//         if(resultFromLab){
+//             if(resultFromLab === 'TWT'){
+//                 query = `SELECT
+//                             reg.company_name, reg.mass, reg.material,
+//                             res.twt_ta2o5, res.twt_wo3, res.twt_sn, res.twt_be, res.twt_li,
+//                             c.tunnels, c.district
+//                         FROM registrations reg
+//                         JOIN results res ON reg.registration_id = res.registration_id
+//                         JOIN companies c ON reg.company_name = c.company_name
+//                         WHERE reg.sample_number = ?;
+//             `;
+//             } else if(resultFromLab === 'GSA'){
+//                 query = `SELECT
+//                             reg.company_name, reg.mass, reg.material,
+//                             res.gsa_ta2o5, res.gsa_wo3, res.gsa_sn, res.gsa_be, res.gsa_li,
+//                             c.tunnels, c.district
+//                         FROM registrations reg
+//                         JOIN results res ON reg.registration_id = res.registration_id
+//                         JOIN companies c ON reg.company_name = c.company_name
+//                         WHERE reg.sample_number = ?;
+//             `;
+//             } else if(resultFromLab === 'ASI'){
+//                 query = `SELECT
+//                             reg.company_name, reg.mass, reg.material,
+//                             res.asi_ta2o5, res.asi_wo3, res.asi_sn, res.asi_be, res.asi_li,
+//                             c.tunnels, c.district
+//                         FROM registrations reg
+//                         JOIN results res ON reg.registration_id = res.registration_id
+//                         JOIN companies c ON reg.company_name = c.company_name
+//                         WHERE reg.sample_number = ?;
+//             `;
+//             }
+//         } else if (!resultFromLab){
+//             query = `SELECT
+//                             reg.company_name, reg.mass, reg.material,
+//                             res.twt_ta2o5, res.twt_wo3, res.twt_sn, res.twt_be, res.twt_li,
+//                             c.tunnels, c.district
+//                         FROM registrations reg
+//                         JOIN results res ON reg.registration_id = res.registration_id
+//                         JOIN companies c ON reg.company_name = c.company_name
+//                         WHERE reg.sample_number = ?;
+//         `;
+//         }
+//         twt.query(query, [sample_number], (err, result) => {
+//             if (err) {
+//                 console.log(err);
+//                 return res.status(500).send('Internal Server Error');
+//             }
+//             let modifiedResult = [];
+//             console.log("printing result: ", result);
+
+//             result.forEach(item => {
+//                 if(item.material === "Ta"){
+//                     modifiedResult.push({
+//                         company_name: item.company_name,
+//                         mass: item.mass,
+//                         material_name: item.material,
+//                         material_percentage: item.twt_ta2o5 || 0,
+//                         tunnels: item.tunnels
+//                     })
+//                 } else if (item.material === "Sn" || item.material === "SN"){
+//                     modifiedResult.push({
+//                         company_name: item.company_name,
+//                         mass: item.mass,
+//                         material_name: item.material,
+//                         material_percentage: item.twt_sn || 0,
+//                         tunnels: item.tunnels
+//                     })
+//                 } else if (item.material === "WO3" || item.material === "W"){
+//                     modifiedResult.push({
+//                         company_name: item.company_name,
+//                         mass: item.mass,
+//                         material_name: item.material,
+//                         material_percentage: item.twt_wo3 || 0,
+//                         tunnels: item.tunnels
+//                     })
+//                 } else if (item.material === "Be"){
+//                     modifiedResult.push({
+//                         company_name: item.company_name,
+//                         mass: item.mass,
+//                         material_name: item.material,
+//                         material_percentage: item.twt_be || 0,
+//                         tunnels: item.tunnels
+//                     })
+//                 } else if (item.material === "Li"){
+//                     modifiedResult.push({
+//                         company_name: item.company_name,
+//                         mass: item.mass,
+//                         material_name: item.material,
+//                         material_percentage: item.twt_li || 0,
+//                         tunnels: item.tunnels
+//                     })
+//                 }
+//             })
+
+            
+            
+//             res.json({purchases: modifiedResult})
+//         })
+//     } catch (error) {
+//         console.error(error);
+//     }
+// });
+
 router.get('/get_Purchase_Info_By_Sample_Number', async (req, res) => {
     try {
         const sample_number = req.query.sample_number;
-        const query = `SELECT
-                            reg.company_name, reg.mass, reg.material,
-                            res.twt_ta2o5, res.twt_wo3, res.twt_sn, res.twt_be, res.twt_li,
-                            c.tunnels, c.district
-                        FROM registrations reg
-                        JOIN results res ON reg.registration_id = res.registration_id
-                        JOIN companies c ON reg.company_name = c.company_name
-                        WHERE reg.sample_number = ?;
-        `
+        const resultFromLab = req.query.resultFromLab || 'TWT'; // Default to TWT if not provided
+        const labPrefix = resultFromLab.toLowerCase(); // Convert to lowercase for consistency
+
+        // Construct the query dynamically
+        const query = `
+            SELECT
+                reg.company_name, reg.mass, reg.material,
+                res.${labPrefix}_ta2o5, res.${labPrefix}_wo3, res.${labPrefix}_sn, 
+                res.${labPrefix}_be, res.${labPrefix}_li,
+                c.tunnels, c.district
+            FROM registrations reg
+            JOIN results res ON reg.registration_id = res.registration_id
+            JOIN companies c ON reg.company_name = c.company_name
+            WHERE reg.sample_number = ?;
+        `;
+
+        // Execute query
         twt.query(query, [sample_number], (err, result) => {
             if (err) {
-                console.log(err);
+                console.error(err);
                 return res.status(500).send('Internal Server Error');
             }
+
             let modifiedResult = [];
-            console.log("printing result: ", result);
 
             result.forEach(item => {
-                if(item.material === "TA"){
-                    modifiedResult.push({
-                        company_name: item.company_name,
-                        mass: item.mass,
-                        material_name: item.material,
-                        material_percentage: item.twt_ta2o5 || 0,
-                        tunnels: item.tunnels
-                    })
-                } else if (item.material === "Sn" || item.material === "SN"){
-                    modifiedResult.push({
-                        company_name: item.company_name,
-                        mass: item.mass,
-                        material_name: item.material,
-                        material_percentage: item.twt_sn || 0,
-                        tunnels: item.tunnels
-                    })
-                } else if (item.material === "WO3" || item.material === "W"){
-                    modifiedResult.push({
-                        company_name: item.company_name,
-                        mass: item.mass,
-                        material_name: item.material,
-                        material_percentage: item.twt_wo3 || 0,
-                        tunnels: item.tunnels
-                    })
-                } else if (item.material === "Be"){
-                    modifiedResult.push({
-                        company_name: item.company_name,
-                        mass: item.mass,
-                        material_name: item.material,
-                        material_percentage: item.twt_be || 0,
-                        tunnels: item.tunnels
-                    })
-                } else if (item.material === "Li"){
-                    modifiedResult.push({
-                        company_name: item.company_name,
-                        mass: item.mass,
-                        material_name: item.material,
-                        material_percentage: item.twt_li || 0,
-                        tunnels: item.tunnels
-                    })
-                }
-            })
+                let material_percentage = 0;
 
-            
-            
-            res.json({purchases: modifiedResult})
-        })
+                switch (item.material) {
+                    case "Ta":
+                        material_percentage = item[`${labPrefix}_ta2o5`] || 0;
+                        break;
+                    case "Sn":
+                        material_percentage = item[`${labPrefix}_sn`] || 0;
+                        break;
+                    case "SN":
+                        material_percentage = item[`${labPrefix}_sn`] || 0;
+                        break;
+                    case "WO3":
+                        material_percentage = item[`${labPrefix}_wo3`] || 0;
+                        break;
+                    case "W":
+                        material_percentage = item[`${labPrefix}_wo3`] || 0;
+                        break;
+                    case "Be":
+                        material_percentage = item[`${labPrefix}_be`] || 0;
+                        break;
+                    case "Li":
+                        material_percentage = item[`${labPrefix}_li`] || 0;
+                        break;
+                }
+
+                modifiedResult.push({
+                    company_name: item.company_name,
+                    mass: item.mass,
+                    material_name: item.material,
+                    material_percentage: material_percentage,
+                    tunnels: item.tunnels
+                });
+            });
+
+            res.json({ purchases: modifiedResult });
+        });
     } catch (error) {
         console.error(error);
+        res.status(500).send('Internal Server Error');
     }
 });
+
 
 // // === get purchase info for ta by sample number ===
 
