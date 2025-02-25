@@ -15,8 +15,15 @@ router.get('/getAllMaterialDepotStats', async (req, res) => {
 
         let unparsedSnStats = await fetch('http://localhost:4000/getSnDepotStats');
         let snStats = await unparsedSnStats.json();
+        
+        let unparsedBeStats = await fetch('http://localhost:4000/getBeDepotStats');
+        let beStats = await unparsedBeStats.json();
+        
+        let unparsedLiStats = await fetch('http://localhost:4000/getLiDepotStats');
+        let liStats = await unparsedLiStats.json();
 
-        let combinedStats = [taStats, wStats, snStats];
+        // let combinedStats = [taStats, wStats, snStats];
+        let combinedStats = [taStats, wStats, snStats, beStats, liStats];
 
         res.json(combinedStats);
     } catch (error) {
@@ -171,6 +178,70 @@ router.get('/getSnDepotStats', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
+    }
+});
+
+router.get('/getBeDepotStats', async (req, res) => {
+    const data = req.body;
+    console.log(data);
+
+    try {
+        const query = 'select * from detailed_lots where lot_number IS NULL AND material_name="Be"';
+        twt.query(query, async (err, detailed_lots) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).send('Internal Server Error');
+            }
+
+            let sumMaterialPercentage = detailed_lots.reduce((acc, item) => acc + item.material_percentage, 0);
+            let sumAveragePrice = detailed_lots.reduce((acc, item) => acc + item.price_per_kg, 0);
+            let sumMTU = detailed_lots.reduce((acc, item) => acc + item.mtu, 0);
+            
+            let w_stats = {
+                material_name: "Be",
+                totalMass: parseFloat(detailed_lots.reduce((acc, item) => acc + item.mass, 0).toFixed(1)),
+                averageMaterialPercentage: parseFloat((sumMaterialPercentage / detailed_lots.length).toFixed(2)),
+                totalAmount: parseFloat(detailed_lots.reduce((acc, item) => acc + item.amount_in_usd, 0).toFixed(2)),
+                price_per_kg: parseFloat((sumAveragePrice / detailed_lots.length).toFixed(2)),
+                MTU: parseFloat((sumMTU / detailed_lots.length).toFixed(2))
+            };
+
+            res.json(w_stats);
+        });
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+router.get('/getLiDepotStats', async (req, res) => {
+    const data = req.body;
+    console.log(data);
+
+    try {
+        const query = 'select * from detailed_lots where lot_number IS NULL AND material_name="Li"';
+        twt.query(query, async (err, detailed_lots) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).send('Internal Server Error');
+            }
+
+            let sumMaterialPercentage = detailed_lots.reduce((acc, item) => acc + item.material_percentage, 0);
+            let sumAveragePrice = detailed_lots.reduce((acc, item) => acc + item.price_per_kg, 0);
+            let sumMTU = detailed_lots.reduce((acc, item) => acc + item.mtu, 0);
+            
+            let w_stats = {
+                material_name: "Li",
+                totalMass: parseFloat(detailed_lots.reduce((acc, item) => acc + item.mass, 0).toFixed(1)),
+                averageMaterialPercentage: parseFloat((sumMaterialPercentage / detailed_lots.length).toFixed(2)),
+                totalAmount: parseFloat(detailed_lots.reduce((acc, item) => acc + item.amount_in_usd, 0).toFixed(2)),
+                price_per_kg: parseFloat((sumAveragePrice / detailed_lots.length).toFixed(2)),
+                MTU: parseFloat((sumMTU / detailed_lots.length).toFixed(2))
+            };
+
+            res.json(w_stats);
+        });
+    } catch (error) {
+        console.error(error);
     }
 });
 

@@ -30,7 +30,7 @@ router.post('/addPurchase', async (req, res) => {
 
         console.log("LastPurchase[0]: ", LastPurchase[0]);
 
-        if(LastPurchase[0].material_name === "TA"){
+        if(LastPurchase[0].material_name === "TA" || LastPurchase[0].material_name === "Ta"){
             data.ta_purchase_id = LastPurchase[0].ta_purchase_id + 1;
         } else if(LastPurchase[0].material_name === "WO3" || LastPurchase[0].material_name === "W"){
             data.wo3_purchase_id = LastPurchase[0].wo3_purchase_id + 1;
@@ -102,15 +102,15 @@ router.post('/addPurchase', async (req, res) => {
             let purchasing_settings_data = await raw_purchasing_settings_data.json();
             let rma_fees_frw_per_kg = 0;
             console.log("data.material_name", data.material_name);
-            if(data.material_name === "TA"){
+            if(data.material_name === "TA" || data.material_name === "TA"){
                 rma_fees_frw_per_kg = purchasing_settings_data.settings[0].ta_rma_fees_frw_per_kg;
-            } else if(data.material_name === "SN"){
+            } else if(data.material_name === "SN" || data.material_name === "Sn"){
                 rma_fees_frw_per_kg = purchasing_settings_data.settings[0].sn_rma_fees_frw_per_kg;
             } else if(data.material_name === "W"){
                 rma_fees_frw_per_kg = purchasing_settings_data.settings[0].w_rma_fees_frw_per_kg;
-            } else if(data.material_name === "BE"){
+            } else if(data.material_name === "BE" || data.material_name === "Be"){
                 rma_fees_frw_per_kg = purchasing_settings_data.settings[0].be_rma_fees_frw_per_kg;
-            } else if(data.material_name === "LI"){
+            } else if(data.material_name === "LI" || data.material_name === "Li"){
                 rma_fees_frw_per_kg = purchasing_settings_data.settings[0].li_rma_fees_frw_per_kg;
             }
 
@@ -322,7 +322,7 @@ router.put('/updatePurchases', async (req, res) => {
                 // Add data to detailed_lots
                 let purchase_number = 0;
                 let rma_fees_frw_per_kg = 0;
-                if(purchaseData.material_name === "TA"){
+                if(purchaseData.material_name === "TA" || purchaseData.material_name === "Ta"){
                     purchase_number = ta_purchase_id;
                     rma_fees_frw_per_kg = updatedPurchase.ta_rma_fees_frw_per_kg
                 } else if(purchaseData.material_name === "W"){
@@ -391,8 +391,10 @@ router.get('/getLastPurchaseMaterialNumber', async (req, res) => {
         let material_name = req.query.material_name;
         let query = ``;
 
+        console.log("Printing material_name (394): ", material_name);
+
         // Build the query based on the material name
-        if (material_name === "TA") {
+        if (material_name === "TA" || material_name === "Ta") {
             query = `SELECT purchase_id, material_name, ta_purchase_id FROM purchases WHERE ta_purchase_id IS NOT NULL ORDER BY purchase_id DESC LIMIT 1;`;
         } else if (material_name === "W") {
             query = `SELECT purchase_id, material_name, wo3_purchase_id FROM purchases WHERE wo3_purchase_id IS NOT NULL ORDER BY purchase_id DESC LIMIT 1;`;
