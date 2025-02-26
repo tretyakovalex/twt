@@ -47,7 +47,7 @@ function filteredResults(results) {
         gsa_wo3: "Wo3",
         gsa_be: "Be",
         gsa_li: "Li",
-        gsa_bq_per_gram: "Radioactivity",
+        gsa_bq_per_gram: "Bq",
         gsa_moisture: "Moisture",
 
         asi_ta2o5: "Ta2o5",
@@ -56,7 +56,7 @@ function filteredResults(results) {
         asi_wo3: "Wo3",
         asi_be: "Be",
         asi_li: "Li",
-        asi_bq_per_gram: "Radioactivity"
+        asi_bq_per_gram: "Bq"
     };
 
     let laboratory = "";

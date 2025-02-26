@@ -136,6 +136,80 @@ router.get('/getResultsByDate', async (req, res) => {
     }
 });
 
+router.get('/getResultsByDateRange', async (req, res) => {
+    const { startDate, endDate } = req.query; // Extract start and end date
+    console.log("Received date range:", startDate, endDate);
+
+    if (!startDate || !endDate) {
+        return res.status(400).json({ error: "Both startDate and endDate are required" });
+    }
+
+    try {
+        const query = 'SELECT * FROM results WHERE date BETWEEN ? AND ?';
+        twt.query(query, [startDate, endDate], (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: "Internal Server Error" });
+            }
+
+            const modifiedResults = results.map(item => {
+                const material = item.material.toLowerCase(); // Normalize for case-insensitive comparison
+
+                const material_ta = material.includes("ta");
+                const material_sn = material.includes("sn");
+                const material_w = material.includes("w");
+                const material_be = material.includes("be");
+                const material_li = material.includes("li");
+
+                return {
+                    date: moment(item.date).format('YYYY-MM-DD'),
+                    sample_number: item.sample_number,
+                    offer_number: item.offer_number,
+                    material: item.material,
+                    mass: item.mass,
+                    company_name: item.company_name,
+                    remarks: '', 
+                    twt_ta2o5: material_ta ? item.twt_ta2o5 : '',
+                    twt_nb2o5: material_ta ? item.twt_nb2o5 : '',
+                    twt_sn: material_sn ? item.twt_sn : '',
+                    twt_wo3: material_w ? item.twt_wo3 : '',
+                    twt_be: material_be ? item.twt_be : '',
+                    twt_li: material_li ? item.twt_li : '',
+                    twt_bq_per_gram: material_ta ? item.twt_bq_per_gram : '',
+                    gsaContractNumber: '',
+                    gsa_ta2o5: material_ta ? item.gsa_ta2o5 : '',
+                    gsa_nb2o5: material_ta ? item.gsa_nb2o5 : '',
+                    gsa_sn: material_sn ? item.gsa_sn : '',
+                    gsa_wo3: material_w ? item.gsa_wo3 : '',
+                    gsa_be: material_be ? item.gsa_be : '',
+                    gsa_li: material_li ? item.gsa_li : '',
+                    gsa_bq_per_gram: material_ta ? item.gsa_bq_per_gram : '',
+                    gsa_moisture: '',
+                    asi_ta2o5: material_ta ? item.asi_ta2o5 : '',
+                    asi_nb2o5: material_ta ? item.asi_nb2o5 : '',
+                    asi_sn: material_sn ? item.asi_sn : '',
+                    asi_wo3: material_w ? item.asi_wo3 : '',
+                    asi_be: material_be ? item.asi_be : '',
+                    asi_li: material_li ? item.asi_li : '',
+                    asi_bq_per_gram: material_ta ? item.asi_bq_per_gram : '',
+                    registration_id: item.registration_id,
+                    material_ta,
+                    material_sn,
+                    material_w,
+                    material_be,
+                    material_li
+                };
+            });
+
+            res.json({ results: modifiedResults });
+        });
+    } catch (error) {
+        console.error("Error fetching results by date range:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+
 router.get('/getSampleNumbersFromResultsByDate', async (req, res) => {
     const date = req.query.date;
     console.log(date);
@@ -148,6 +222,30 @@ router.get('/getSampleNumbersFromResultsByDate', async (req, res) => {
         console.error(error);
     }
 });
+
+router.get('/getSampleNumbersFromResultsByDateRange', async (req, res) => {
+    const { startDate, endDate } = req.query; // Extract start and end dates
+    console.log("Received date range:", startDate, endDate);
+
+    if (!startDate || !endDate) {
+        return res.status(400).json({ error: "Both startDate and endDate are required" });
+    }
+
+    try {
+        const query = `SELECT DISTINCT res.sample_number FROM results res WHERE res.date BETWEEN ? AND ?`;
+        twt.query(query, [startDate, endDate], (err, result) => {
+            if (err) {
+                console.error("Database query error:", err);
+                return res.status(500).json({ error: "Internal Server Error" });
+            }
+            res.json({ sampleNumbers: result });
+        });
+    } catch (error) {
+        console.error("Error fetching sample numbers by date range:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
 
 router.post('/addResults', async (req, res) => {
     try {
@@ -409,6 +507,66 @@ router.get('/getResultsForLots', async (req, res) => {
     } catch (error) {
         console.error(error);
     }
-})
+});
+
+router.get('/checkResultExists', (req, res) => {
+    const { date } = req.query;
+
+    if (!date) {
+        return res.status(400).json({ error: "Date parameter is required" });
+    }
+
+    // Query to get sample_numbers from registrations that have a matching result on the given date
+    const queryExisting = `
+        SELECT r.sample_number 
+        FROM registrations r
+        JOIN results res ON r.sample_number = res.sample_number 
+        WHERE res.date = ?
+    `;
+
+    twt.query(queryExisting, [date], (error, results) => {
+        if (error) {
+            console.error('Error checking result existence:', error);
+            return res.status(500).json({ error: "Internal server error" });
+        }
+
+        // Create an array of objects with exists: true for the sample_numbers found in both tables
+        const existingSampleNumbers = results.map(row => ({
+            sample_number: row.sample_number,
+            exists: true
+        }));
+
+        // Query to get sample_numbers from registrations that do not have any result for the given date
+        const queryNonExisting = `
+            SELECT r.sample_number, r.date
+            FROM registrations r
+            LEFT JOIN results res ON r.sample_number = res.sample_number
+            WHERE r.date = ? AND res.sample_number IS NULL
+        `;
+
+        twt.query(queryNonExisting, [date], (errorRemaining, remainingResults) => {
+            if (errorRemaining) {
+                console.error('Error checking non-existing sample numbers:', errorRemaining);
+                return res.status(500).json({ error: "Internal server error" });
+            }
+
+            // Create an array of objects with exists: false for the sample_numbers not found in results
+            const nonExistingSampleNumbers = remainingResults.map(row => ({
+                sample_number: row.sample_number,
+                exists: false
+            }));
+
+            // Combine both results (existing and non-existing sample numbers)
+            const finalResults = [...existingSampleNumbers, ...nonExistingSampleNumbers];
+
+            res.json(finalResults);
+        });
+    });
+});
+
+
+
+
+
 
 module.exports = router;
