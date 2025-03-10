@@ -134,12 +134,12 @@ async function createDailyPurchaseExcel(purchases){
         { header: 'Lot #', key: 'lot_number', width: 10 }
     ];
 
-    // SELECT ta_purchase_id, company_name, mass, material_name, material_percentage, price_per_kg, total_amount, itsci_mine_site_number, rma_frw, rma_usd, usd_per_pound FROM purchases WHERE material_name = 'TA' AND purchase_date = '2013-03-15';
+    // SELECT ta_purchase_id, company_name, mass, material_name, material_percentage, price_per_kg, total_amount, itsci_mine_site_number, rma_frw, rma_usd, usd_per_pound FROM purchases WHERE material_name = 'Ta' AND purchase_date = '2013-03-15';
     // Add columns to the worksheet
 
     // Adding rows to sheet1
     purchases.forEach(item => {
-        if(item.material_name === "TA"){
+        if(item.material_name === "Ta"){
             // worksheet1.addRow({ 
             //     // purchase_id: item.ta_purchase_id,
             //     purchase_date: item.purchase_date,

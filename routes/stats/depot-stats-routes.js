@@ -36,7 +36,7 @@ router.get('/getTaDepotStats', async (req, res) => {
     console.log(data);
 
     try {
-        const query = 'select * from detailed_lots where lot_number IS NULL AND material_name="TA"';
+        const query = 'select * from detailed_lots where lot_number IS NULL AND material_name="Ta"';
         twt.query(query, async (err, detailed_lots) => {
             if (err) {
                 console.log(err);

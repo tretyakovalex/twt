@@ -96,7 +96,7 @@ router.get('/getDetailedLotsWithoutLotNumber', async (req, res) => {
         // Split into differenet queries based on the material_name
         let query = ``;
 
-        if(material_name === "TA"){
+        if(material_name === "Ta"){
             query = `select lot_number, purchase_number, date, company_name, mass, material_name, material_percentage, price_per_kg, mtu, comments as remarks, amount_in_usd as total_amount from detailed_lots where lot_number IS NULL AND material_name='${material_name}'`;
         } else if(material_name === "W"){
         query = `select lot_number, purchase_number, date, company_name, mass, material_name, material_percentage, price_per_kg, mtu, lme, tc, comments as remarks, amount_in_usd as total_amount from detailed_lots where lot_number IS NULL AND material_name='${material_name}';`;

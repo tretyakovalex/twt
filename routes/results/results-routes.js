@@ -454,8 +454,8 @@ router.get('/getResultsForLots', async (req, res) => {
 
             result.forEach(item1 => {
                 // Find the matching object in the second array
-                if(lots.lots.some(item => item.material_name === "TA")){
-                    // console.log("Inside TA if statement:");
+                if(lots.lots.some(item => item.material_name === "Ta")){
+                    // console.log("Inside Ta if statement:");
                     // const matchingItem = lots.lots.find(item2 => item2.purchase_number === item1.ta_purchase_id);
                     const matchingItem = lots.lots.find(item2 => item2.purchase_number === item1.ta_purchase_id);
                     console.log("Printing matchingItem: ", matchingItem);

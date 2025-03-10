@@ -138,12 +138,12 @@ async function createDailyPurchaseExcel(purchases){
         { header: 'Amount, $', key: 'total_amount', width: 20 }
     ];
 
-    // SELECT ta_purchase_id, company_name, mass, material_name, material_percentage, price_per_kg, total_amount, itsci_mine_site_number, rma_frw, rma_usd, usd_per_pound FROM purchases WHERE material_name = 'TA' AND purchase_date = '2013-03-15';
+    // SELECT ta_purchase_id, company_name, mass, material_name, material_percentage, price_per_kg, total_amount, itsci_mine_site_number, rma_frw, rma_usd, usd_per_pound FROM purchases WHERE material_name = 'Ta' AND purchase_date = '2013-03-15';
     // Add columns to the worksheet
 
     // Adding rows to sheet1
     purchases.forEach(item => {
-        if(item.material_name === "TA"){
+        if(item.material_name === "Ta"){
             worksheet1.addRow({ 
                 // purchase_id: item.ta_purchase_id,
                 ta_material_percentage: Number(item.material_percentage),
@@ -252,7 +252,7 @@ async function createDailyPurchaseExcel(purchases){
 //     const workbook = new ExcelJS.Workbook();
 //     const worksheet = workbook.addWorksheet('Daily Purchases');
 
-//     if(material_name === "TA"){
+//     if(material_name === "Ta"){
 //         worksheet.columns = [
 //             { header: 'Purchase Number', key: 'purchase_id', width: 20 },
 //             { header: 'Company', key: 'company_name', width: 30 },
@@ -267,7 +267,7 @@ async function createDailyPurchaseExcel(purchases){
 //             { header: 'RMA USD', key: 'rma_usd', width: 10 },
 //             { header: 'USD / lb', key: 'usd_per_pound', width: 10 }
 //         ];
-//     } else if (material_name !== "TA"){
+//     } else if (material_name !== "Ta"){
 //         worksheet.columns = [
 //             { header: 'Purchase Number', key: 'purchase_id', width: 20 },
 //             { header: 'Company', key: 'company_name', width: 30 },
@@ -282,11 +282,11 @@ async function createDailyPurchaseExcel(purchases){
 //         ];
 //     }
 
-//     // SELECT ta_purchase_id, company_name, mass, material_name, material_percentage, price_per_kg, total_amount, itsci_mine_site_number, rma_frw, rma_usd, usd_per_pound FROM purchases WHERE material_name = 'TA' AND purchase_date = '2013-03-15';
+//     // SELECT ta_purchase_id, company_name, mass, material_name, material_percentage, price_per_kg, total_amount, itsci_mine_site_number, rma_frw, rma_usd, usd_per_pound FROM purchases WHERE material_name = 'Ta' AND purchase_date = '2013-03-15';
 //     // Add columns to the worksheet
 
 //     purchases.forEach(item => {
-//         if(material_name === "TA"){
+//         if(material_name === "Ta"){
 //             worksheet.addRow({ 
 //                 purchase_id: item.ta_purchase_id,
 //                 company_name: item.company_name,
