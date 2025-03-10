@@ -61,7 +61,7 @@ router.post('/addPurchase', async (req, res) => {
 
             // Add data to detailed_lots
             let purchase_number = 0;
-            if(data.material_name === "TA"){
+            if(data.material_name === "TA" || data.material_name === "Ta"){
                 purchase_number = data.ta_purchase_id;
             } else if(data.material_name === "W"){
                 purchase_number = data.wo3_purchase_id;

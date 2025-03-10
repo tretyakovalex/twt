@@ -75,7 +75,10 @@ router.post('/importLotsFromExcel', async (req, res) => {
         return moment(a.forming_date).isBefore(moment(b.forming_date)) ? -1 : 1;
     });
 
+    console.log("Printing formatted Lots: ", formattedLots);
+
     const insertQuery = `INSERT INTO lots (category, purchase_numbers, forming_date, calc_mass, material_name, material_percentage_average, radiation_percentage_average, comments, price_per_kg, amount_in_usd, lot_number, chim) VALUES ?`;
+    console.log("printing insert query: ", insertQuery);
 
     const values = formattedLots.map(lot => [lot.category, lot.purchase_numbers, lot.forming_date, lot.calc_mass, lot.material_name, lot.material_percentage_average, lot.radiation_percentage_average, lot.comments, lot.price_per_kg, lot.amount_in_usd, lot.lot_number, lot.chim]);
 
@@ -92,8 +95,8 @@ router.post('/importLotsFromExcel', async (req, res) => {
 router.post('/importDetailedLotsFromExcel', async (req, res) => {
     try {
         let ta_data = await getDetailedLotsData("../../formattedLotsTa.xlsx");
-        let w_data = await getDetailedLotsData("../../formattedLotsW.xlsx");
-        let sn_data = await getDetailedLotsData("../../formattedLotsSn.xlsx");
+        // let w_data = await getDetailedLotsData("../../formattedLotsW.xlsx");
+        // let sn_data = await getDetailedLotsData("../../formattedLotsSn.xlsx");
 
         let formattedDetailedLotsTa = [];
         let formattedDetailedLotsW = [];
@@ -115,34 +118,34 @@ router.post('/importDetailedLotsFromExcel', async (req, res) => {
                 bq_per_gram: item.Bq
             })
         });
-        w_data.forEach(item => {
-            formattedDetailedLotsW.push({
-                lot_number: item.lot_id,
-                purchase_number: item.purchase_id,
-                date: item.date,
-                company_name: item.company_name,
-                mass: item.mass,
-                material_name: "W",
-                material_percentage: item.WO3,
-                price_per_kg: item.price_per_kg,
-                comments: item.Comments,
-                amount_in_usd: item.total_amount
-            })
-        });
-        sn_data.forEach(item => {
-            formattedDetailedLotsSn.push({
-                lot_number: item.lot_id,
-                purchase_number: item.purchase_id,
-                date: item.date,
-                company_name: item.company_name,
-                mass: item.mass,
-                material_name: "Sn",
-                material_percentage: item.SnO2,
-                price_per_kg: item.price_per_kg,
-                comments: item.Comments,
-                amount_in_usd: item.total_amount
-            })
-        });
+        // w_data.forEach(item => {
+        //     formattedDetailedLotsW.push({
+        //         lot_number: item.lot_id,
+        //         purchase_number: item.purchase_id,
+        //         date: item.date,
+        //         company_name: item.company_name,
+        //         mass: item.mass,
+        //         material_name: "W",
+        //         material_percentage: item.WO3,
+        //         price_per_kg: item.price_per_kg,
+        //         comments: item.Comments,
+        //         amount_in_usd: item.total_amount
+        //     })
+        // });
+        // sn_data.forEach(item => {
+        //     formattedDetailedLotsSn.push({
+        //         lot_number: item.lot_id,
+        //         purchase_number: item.purchase_id,
+        //         date: item.date,
+        //         company_name: item.company_name,
+        //         mass: item.mass,
+        //         material_name: "Sn",
+        //         material_percentage: item.SnO2,
+        //         price_per_kg: item.price_per_kg,
+        //         comments: item.Comments,
+        //         amount_in_usd: item.total_amount
+        //     })
+        // });
 
         let formattedDetailedLots = [...formattedDetailedLotsTa, ...formattedDetailedLotsW, ...formattedDetailedLotsSn];
         formattedDetailedLots.sort((a, b) => {
@@ -173,7 +176,8 @@ async function getExcelLotsData(file_path){
     const workbook = xlsx.readFile(path.join(__dirname, file_path));
 
     // Get the first sheet
-    const sheetName = workbook.SheetNames[2]; // Get the name of the 3rd sheet
+    // const sheetName = workbook.SheetNames[2]; // Get the name of the 3rd sheet
+    const sheetName = workbook.SheetNames[1]; // Get the name of the 2nst sheet
     const sheet = workbook.Sheets[sheetName];
     
     // Convert sheet to JSON
@@ -254,4 +258,124 @@ async function getDetailedLotsData(file_path){
 
     return jsonData;
 }
+
+// async function getDetailedLotsDataTemp(file_path){
+//     const xlsx = require('xlsx');
+//     const workbook = xlsx.readFile(path.join(__dirname, file_path));
+
+//     // Get the first sheet
+//     const sheetName = workbook.SheetNames[1]; // Get the name of the 2st sheet
+//     const sheet = workbook.Sheets[sheetName];
+    
+//     // Convert sheet to JSON
+//     const jsonData = xlsx.utils.sheet_to_json(sheet, { raw: false });
+
+//     return jsonData;
+// }
+
+// ✅ Function to Write Data to a New Sheet in Excel
+// function writeDataToExcel(file_path, newData, sheetName = "UpdatedLots") {
+//     const xlsx = require('xlsx');
+//     const workbook = xlsx.readFile(path.resolve(file_path));
+
+//     // Convert JSON to sheet
+//     const newSheet = xlsx.utils.json_to_sheet(newData);
+
+//     // Append new sheet to workbook
+//     workbook.Sheets[sheetName] = newSheet;
+//     workbook.SheetNames.push(sheetName);
+
+//     // Save the updated file
+//     xlsx.writeFile(workbook, path.resolve(file_path));
+// }
+
+// ✅ Route to Process & Write Data to Excel
+// router.post('/updateDetailedLotsTableTemp', async (req, res) => {
+//     try {
+//         let lotsData = await getDetailedLotsDataTemp("../../tempDetailedLotsData.xlsx");
+//         let formattedData = [];
+
+//         for (const lot of lotsData) {
+//             const purchaseNumbers = lot.purchase_numbers.split(" "); // Split space-separated numbers
+            
+//             console.log("Processing lot: ", lot);
+
+//             for (const purchaseNumber of purchaseNumbers) {
+//                 formattedData.push({
+//                     purchase_number: purchaseNumber,
+//                     material_name: lot.material_name,
+//                     lot_number: lot.lot_number
+//                 });
+//             }
+//         }
+
+//         // ✅ Write formatted data to a new sheet in the same Excel file
+//         writeDataToExcel("tempDetailedLotsData.xlsx", formattedData, "UpdatedLots");
+
+//         console.log("✅ Successfully updated and saved to Excel.");
+//         res.json({ message: "Successfully saved updated data to Excel!" });
+
+//     } catch (error) {
+//         console.error("❌ Error processing data:", error);
+//         res.status(500).json({ message: "Error processing data.", error });
+//     }
+// });
+
+
+// ✅ Function to update lots in batches
+// async function updateLotsInBatches(connection, lotsData, batchSize = 50) {
+//     for (let i = 0; i < lotsData.length; i += batchSize) {
+//         const batch = lotsData.slice(i, i + batchSize);
+//         await updateLots(connection, batch);
+//     }
+// }
+
+// // ✅ Function to execute batch update query
+// async function updateLots(connection, lotsData) {
+//     if (lotsData.length === 0) return;
+
+//     const updates = [];
+//     const purchaseNumbers = [];
+
+//     // ✅ Construct SQL `CASE` statement dynamically
+//     lotsData.forEach(lot => {
+//         lot.purchase_numbers.split(" ").forEach(purchaseNumber => {
+//             updates.push(`WHEN purchase_number = ${purchaseNumber} AND material_name = '${lot.material_name}' THEN '${lot.lot_number}'`);
+//             purchaseNumbers.push(purchaseNumber);
+//         });
+//     });
+
+//     const query = `
+//         UPDATE detailed_lots
+//         SET lot_number = CASE ${updates.join(' ')} END
+//         WHERE purchase_number IN (${purchaseNumbers.join(',')});
+//     `;
+
+//     try {
+//         const [result] = await connection.execute(query);
+//         console.log("✅ Batch update successful:", result);
+//     } catch (error) {
+//         console.error("❌ Error in batch update:", error);
+//     }
+// }
+
+// // ✅ Express route to process and update data
+// router.post('/updateDetailedLotsTableTemp', async (req, res) => {
+//     try {
+//         const lotsData = await getDetailedLotsDataTemp("../../tempDetailedLotsData.xlsx");
+//         const connection = await pool.getConnection();
+
+//         console.log("✅ Read data from Excel:", lotsData.length, "records");
+
+//         // ✅ Perform batch updates
+//         await updateLotsInBatches(connection, lotsData, 50);
+
+//         connection.release();
+//         res.json({ message: "Successfully updated detailed lots." });
+//     } catch (error) {
+//         console.error("❌ Error updating lots:", error);
+//         res.status(500).json({ message: "Error updating lots", error });
+//     }
+// });
+
 module.exports = router;
