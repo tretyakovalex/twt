@@ -772,4 +772,103 @@ router.get('/getPurchasesByDate', async (req, res) => {
     }
 });
 
+// === Delete purchase for today by purchase ID ===
+router.delete("/deletePurchaseForToday/:purchaseId", async (req, res) => {
+    try {
+        const purchaseId = req.params.purchaseId;
+
+        if (!purchaseId) {
+            return res.status(400).json({ error: "Missing purchase ID" });
+        }
+
+        const todayDate = moment().format("YYYY-MM-DD");
+
+        // Step 1: Fetch the purchase_date for the given purchase_id
+        const selectQuery = `SELECT purchase_date FROM purchases WHERE purchase_id = ?`;
+        const purchase = await new Promise((resolve, reject) => {
+            twt.query(selectQuery, [purchaseId], (err, results) => {
+                if (err) {
+                    console.error(`Error fetching purchase date for ID ${purchaseId}:`, err);
+                    return reject(err);
+                }
+                resolve(results[0]);
+            });
+        });
+
+        if (!purchase) {
+            return res.status(404).json({ error: `No purchase found with ID ${purchaseId}` });
+        }
+
+        const purchaseDate = moment(purchase.purchase_date).format("YYYY-MM-DD");
+
+        if (purchaseDate !== todayDate) {
+            return res.status(403).json({ error: `Purchase ID ${purchaseId} has an earlier date (${purchaseDate}) and cannot be deleted.` });
+        }
+
+        // Step 2: Proceed with deletion
+        const deleteQuery = `DELETE FROM purchases WHERE purchase_id = ?`;
+        await new Promise((resolve, reject) => {
+            twt.query(deleteQuery, [purchaseId], (err) => {
+                if (err) {
+                    console.error(`Error deleting purchase ID ${purchaseId}:`, err);
+                    return reject(err);
+                }
+                resolve();
+            });
+        });
+
+        res.status(200).json({ message: `Purchase ID ${purchaseId} deleted successfully.` });
+
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+
+router.delete("/deletePurchase/:purchaseId", async (req, res) => {
+    try {
+        const purchaseId = req.params.purchaseId;
+
+        if (!purchaseId) {
+            return res.status(400).json({ error: "Missing purchase ID" });
+        }
+
+        // Step 1: Check if the purchase exists
+        const selectQuery = `SELECT purchase_id FROM purchases WHERE purchase_id = ?`;
+        const purchase = await new Promise((resolve, reject) => {
+            twt.query(selectQuery, [purchaseId], (err, results) => {
+                if (err) {
+                    console.error(`Error fetching purchase for ID ${purchaseId}:`, err);
+                    return reject(err);
+                }
+                resolve(results[0]);
+            });
+        });
+
+        if (!purchase) {
+            return res.status(404).json({ error: `No purchase found with ID ${purchaseId}` });
+        }
+
+        // Step 2: Proceed with deletion
+        const deleteQuery = `DELETE FROM purchases WHERE purchase_id = ?`;
+        await new Promise((resolve, reject) => {
+            twt.query(deleteQuery, [purchaseId], (err) => {
+                if (err) {
+                    console.error(`Error deleting purchase ID ${purchaseId}:`, err);
+                    return reject(err);
+                }
+                resolve();
+            });
+        });
+
+        res.status(200).json({ message: `Purchase ID ${purchaseId} deleted successfully.` });
+
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+
 module.exports = router;
