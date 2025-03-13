@@ -259,14 +259,313 @@ router.get('/print_purchase_by_id', async (req, res) => {
 
 // === Update purchases ===
 
-router.put('/updatePurchases', async (req, res) => {
+// router.put('/updatePurchases', async (req, res) => {
+//     try {
+//         const dataArray = req.body; // Expecting an array of objects
+
+//         console.log(dataArray);
+
+//         if (!Array.isArray(dataArray) || dataArray.length === 0) {
+//             return res.status(400).json({ error: "Request body must be a non-empty array of objects" });
+//         }
+
+//         const updateQuery = `UPDATE purchases SET ? WHERE purchase_id=?`;
+//         const selectQuery = `
+//             SELECT pur.purchase_id, pur.mass, pur.sample_and_company_number, pur.company_name, pur.price_per_kg, pur.total_amount, pur.purchase_date, pur.rma_frw, pur.total_minus_rma_usd, pur.ta_purchase_id, 
+//             COALESCE(purSet.exchange_rate_frw_to_usd, lastSet.exchange_rate_frw_to_usd) AS exchange_rate_frw_to_usd, 
+//             COALESCE(purSet.ta_rma_fees_frw_per_kg, lastSet.ta_rma_fees_frw_per_kg) AS ta_rma_fees_frw_per_kg,
+//             comp.tin, reg.material, reg.number_of_bags
+//             FROM purchases pur
+//             INNER JOIN companies comp ON pur.company_name = comp.company_name
+//             INNER JOIN registrations reg ON reg.sample_number=pur.sample_number
+//             LEFT JOIN purchasing_settings purSet 
+//                 ON pur.purchase_date = purSet.date
+//             LEFT JOIN (
+//                 SELECT * 
+//                 FROM purchasing_settings 
+//                 ORDER BY date DESC 
+//                 LIMIT 1
+//             ) lastSet ON purSet.date IS NULL WHERE pur.purchase_id=?;
+//         `;
+
+//         let ta_purchase_id = 0;
+//         for (const purchaseData of dataArray) {
+//             try {
+//                 // Update each purchase in the database
+//                 await new Promise((resolve, reject) => {
+//                     twt.query(updateQuery, [purchaseData, purchaseData.purchase_id], (err) => {
+//                         if (err) {
+//                             console.error(`Error updating purchase ID ${purchaseData.purchase_id}:`, err);
+//                             return reject(err);
+//                         }
+//                         console.log("The purchase data was successfully updated!");
+//                         resolve();
+//                     });
+//                 });
+
+//                 // Fetch the updated purchase data
+//                 let sample_and_company_number = "";
+//                 const updatedPurchase = await new Promise((resolve, reject) => {
+//                     twt.query(selectQuery, [purchaseData.purchase_id], (err, purchase) => {
+//                         if (err) {
+//                             console.error(`Error fetching updated data for purchase ID ${purchaseData.purchase_id}:`, err);
+//                             return reject(err);
+//                         }
+//                         sample_and_company_number = purchase[0].sample_and_company_number;
+//                         ta_purchase_id = purchase[0].ta_purchase_id;
+//                         resolve(purchase[0]);
+//                     });
+//                 });
+
+//                 console.log("updatedPurchase: ", updatedPurchase);
+
+//                 // Add data to detailed_lots
+//                 let purchase_number = 0;
+//                 let rma_fees_frw_per_kg = 0;
+//                 if(purchaseData.material_name === "Ta"){
+//                     purchase_number = ta_purchase_id;
+//                     rma_fees_frw_per_kg = updatedPurchase.ta_rma_fees_frw_per_kg
+//                 } else if(purchaseData.material_name === "W"){
+//                     purchase_number = purchaseData.wo3_purchase_id;
+//                     rma_fees_frw_per_kg = updatedPurchase.w_rma_fees_frw_per_kg
+//                 } else if(purchaseData.material_name === "Sn"){
+//                     purchase_number = purchaseData.sn_purchase_id;
+//                     rma_fees_frw_per_kg = updatedPurchase.sn_rma_fees_frw_per_kg
+//                 } else if(purchaseData.material_name === "Be"){
+//                     purchase_number = purchaseData.be_purchase_id;
+//                     rma_fees_frw_per_kg = updatedPurchase.be_rma_fees_frw_per_kg
+//                 } else if(purchaseData.material_name === "Li"){
+//                     purchase_number = purchaseData.li_purchase_id;
+//                     rma_fees_frw_per_kg = updatedPurchase.li_rma_fees_frw_per_kg
+//                 }
+
+//                 console.log("purchase_number: ", purchase_number);
+
+//                 let pdfData = {
+//                     purchase_number: purchase_number,
+//                     material_type: purchaseData.material_name,
+//                     material_name: purchaseData.material_name,
+//                     purchase_mass: updatedPurchase.mass,
+//                     company_name: updatedPurchase.company_name,
+//                     tin: updatedPurchase.tin,
+//                     price_usd_per_kg: purchaseData.price_per_kg,
+//                     total_amount_usd: purchaseData.total_amount,
+//                     date: moment(updatedPurchase.purchase_date).format('DD.MM.YYYY'),
+//                     exchange_rate_rwf_usd: updatedPurchase.exchange_rate_frw_to_usd || "1335", // Change to get from last row from purchasing_settgins table
+//                     rma_payment_rwf_per_kg: rma_fees_frw_per_kg || "125", // Change to get from last row from purchasing_settgins table
+//                     rma_payment_total_rwf: updatedPurchase.rma_frw,
+//                     rma_payment_three_percent_usd: "728.6",
+//                     rma_payment_three_percent_rwf: "973 409.6",
+//                     client_net_payment: updatedPurchase.total_minus_rma_usd,
+//                 }
+
+//                 console.log("pdfData: ", pdfData);
+
+//                 // Generate PDF for the updated purchase
+//                 let certificateName = `purchasingCert_${purchaseData.material_name}_${sample_and_company_number}`;
+//                 // const pdfPath = await compilePurchaseReceipt.generatePdf(pdfData, 'purchaseCertificate');
+//                 const pdfPath = await compilePurchaseReceipt.generatePdf(pdfData, certificateName);
+
+//                 // Optionally send the PDF data to WebSocket clients or perform other actions
+//                 if(pdfPath){
+//                     console.log("Printing pdf path: ", pdfPath);
+//                     console.log(`PDF generated successfully for purchase ID ${purchaseData.purchase_id}`);
+//                     res.download(pdfPath);
+//                 }
+//             } catch (error) {
+//                 console.error(`Error processing purchase ID ${purchaseData.purchase_id}:`, error);
+//                 return res.status(500).json({ error: `Failed to update purchase ID ${purchaseData.purchase_id}` });
+//             }
+//         }
+
+//         // res.status(200).json({ message: "All purchases updated and PDFs regenerated successfully!" });
+//     } catch (error) {
+//         console.error("Unexpected error:", error);
+//         res.status(500).json({ error: "Internal Server Error" });
+//     }
+// });
+
+// router.put('/updatePurchases', async (req, res) => {
+//     try {
+//         const dataArray = req.body; // Expecting an array of objects
+
+//         console.log(dataArray);
+
+//         if (!Array.isArray(dataArray) || dataArray.length === 0) {
+//             return res.status(400).json({ error: "Request body must be a non-empty array of objects" });
+//         }
+
+//         // Database connection transaction
+//         // const connection = await twt.getConnection();
+//         // await connection.beginTransaction();
+
+//         const updateQuery = `UPDATE purchases SET ? WHERE purchase_id=?`;
+//         const selectQuery = `
+//             SELECT pur.purchase_id, pur.mass, pur.sample_and_company_number, pur.company_name, pur.price_per_kg, pur.total_amount, pur.purchase_date, pur.rma_frw, pur.total_minus_rma_usd, pur.ta_purchase_id, 
+//             COALESCE(purSet.exchange_rate_frw_to_usd, lastSet.exchange_rate_frw_to_usd) AS exchange_rate_frw_to_usd, 
+//             COALESCE(purSet.ta_rma_fees_frw_per_kg, lastSet.ta_rma_fees_frw_per_kg) AS ta_rma_fees_frw_per_kg,
+//             comp.tin, reg.material, reg.number_of_bags
+//             FROM purchases pur
+//             INNER JOIN companies comp ON pur.company_name = comp.company_name
+//             INNER JOIN registrations reg ON reg.sample_number=pur.sample_number
+//             LEFT JOIN purchasing_settings purSet 
+//                 ON pur.purchase_date = purSet.date
+//             LEFT JOIN (
+//                 SELECT * FROM purchasing_settings 
+//                 ORDER BY date DESC 
+//                 LIMIT 1
+//             ) lastSet ON purSet.date IS NULL WHERE pur.purchase_id=?;
+//         `;
+
+//         const materialMapping = {
+//             "Ta": { idField: "ta_purchase_id", rmaField: "ta_rma_fees_frw_per_kg" },
+//             "W": { idField: "wo3_purchase_id", rmaField: "w_rma_fees_frw_per_kg" },
+//             "Sn": { idField: "sn_purchase_id", rmaField: "sn_rma_fees_frw_per_kg" },
+//             "Be": { idField: "be_purchase_id", rmaField: "be_rma_fees_frw_per_kg" },
+//             "Li": { idField: "li_purchase_id", rmaField: "li_rma_fees_frw_per_kg" },
+//         };
+
+//         let generatedPdfs = [];
+
+//         for (const purchaseData of dataArray) {
+//             try {
+//                 // Update the purchase
+//                 await new Promise((resolve, reject) => {
+//                     twt.query(updateQuery, [purchaseData, purchaseData.purchase_id], (err) => {
+//                         if (err) {
+//                             console.error(`Error updating purchase ID ${purchaseData.purchase_id}:`, err);
+//                             return reject(err);
+//                         }
+//                         console.log("The purchase data was successfully updated!");
+//                         resolve();
+//                     });
+//                 });
+//                 // await twt.query(updateQuery, [purchaseData, purchaseData.purchase_id]);
+
+//                 // Fetch the updated purchase data
+//                 // const [purchase] = await twt.query(selectQuery, [purchaseData.purchase_id]);
+//                 let sample_and_company_number = "";
+//                 const updatedPurchase = await new Promise((resolve, reject) => {
+//                     twt.query(selectQuery, [purchaseData.purchase_id], (err, purchase) => {
+//                         if (err) {
+//                             console.error(`Error fetching updated data for purchase ID ${purchaseData.purchase_id}:`, err);
+//                             return reject(err);
+//                         }
+//                         sample_and_company_number = purchase[0].sample_and_company_number;
+//                         ta_purchase_id = purchase[0].ta_purchase_id;
+//                         resolve(purchase[0]);
+//                     });
+//                 });
+
+//                 if (!updatedPurchase || updatedPurchase.length === 0) {
+//                     throw new Error(`No data found for purchase ID ${purchaseData.purchase_id}`);
+//                 }
+
+//                 // const updatedPurchase = purchase[0];
+//                 // const sample_and_company_number = updatedPurchase.sample_and_company_number;
+
+//                 console.log("Updated Purchase: ", updatedPurchase);
+
+//                 // Add a check before accessing materialMapping[purchaseData.material_name]
+//                 if (!purchaseData.material_name || !materialMapping[purchaseData.material_name]) {
+//                     throw new Error(`Invalid or missing material name: ${purchaseData.material_name}`);
+//                 }
+                
+//                 // Get correct purchase_number and rma_fees_frw_per_kg based on material
+//                 const materialData = materialMapping[purchaseData.material_name];
+//                 if (!materialData) {
+//                     throw new Error(`Invalid material name: ${purchaseData.material_name}`);
+//                 }
+
+//                 const purchase_number = updatedPurchase[materialData.idField];
+//                 const rma_fees_frw_per_kg = updatedPurchase[materialData.rmaField];
+
+//                 console.log("Purchase Number: ", purchase_number);
+
+//                 let pdfData = {
+//                     purchase_number: purchase_number,
+//                     material_type: purchaseData.material_name,
+//                     material_name: purchaseData.material_name,
+//                     purchase_mass: updatedPurchase.mass,
+//                     company_name: updatedPurchase.company_name,
+//                     tin: updatedPurchase.tin,
+//                     price_usd_per_kg: purchaseData.price_per_kg,
+//                     total_amount_usd: purchaseData.total_amount,
+//                     date: moment(updatedPurchase.purchase_date).format('DD.MM.YYYY'),
+//                     exchange_rate_rwf_usd: updatedPurchase.exchange_rate_frw_to_usd || "1335",
+//                     rma_payment_rwf_per_kg: rma_fees_frw_per_kg || "125",
+//                     rma_payment_total_rwf: updatedPurchase.rma_frw,
+//                     rma_payment_three_percent_usd: "728.6",
+//                     rma_payment_three_percent_rwf: "973 409.6",
+//                     client_net_payment: updatedPurchase.total_minus_rma_usd,
+//                 };
+
+//                 // **Newly added detailed_lots_obj update**
+//                 let detailed_lots_obj = {
+//                     purchase_number: purchase_number,
+//                     date: purchaseData.purchase_date,
+//                     company_name: purchaseData.company_name,
+//                     mass: purchaseData.mass,
+//                     material_name: purchaseData.material_name,
+//                     material_percentage: purchaseData.material_percentage,
+//                     price_per_kg: purchaseData.price_per_kg,
+//                     amount_in_usd: purchaseData.total_amount,
+//                     Nb2o5: purchaseData.Nb2o5,
+//                     bq_per_kg: purchaseData.bq_per_kg,
+//                     mtu: purchaseData.mtu,
+//                     lme: purchaseData.lme,
+//                     tc: purchaseData.tc
+//                 };
+
+//                 try {
+//                     await fetch('http://localhost:4000/updateDetailedLotsFromPurchase', {
+//                         method: 'PUT',
+//                         headers: { 'Content-Type': 'application/json' },
+//                         body: JSON.stringify(detailed_lots_obj)
+//                     });
+//                 } catch (fetchError) {
+//                     console.error(`Failed to update detailed lots for purchase ID ${purchaseData.purchase_id}:`, fetchError);
+//                 }
+
+//                 console.log("PDF Data: ", pdfData);
+
+//                 let certificateName = `purchasingCert_${purchaseData.material_name}_${sample_and_company_number}`;
+//                 const pdfPath = await compilePurchaseReceipt.generatePdf(pdfData, certificateName);
+
+//                 if (pdfPath) {
+//                     console.log("PDF generated successfully: ", pdfPath);
+//                     generatedPdfs.push(pdfPath);
+//                 }
+//             } catch (error) {
+//                 console.error(`Error processing purchase ID ${purchaseData.purchase_id}:`, error);
+//                 // await twt.rollback();
+//                 return res.status(500).json({ error: `Failed to update purchase ID ${purchaseData.purchase_id}` });
+//             }
+//         }
+
+//         // await connection.commit();
+//         // connection.release();
+
+//         if (generatedPdfs.length > 0) {
+//             return res.status(200).json({ message: "All purchases updated and PDFs generated successfully!", pdfs: generatedPdfs });
+//         } else {
+//             return res.status(200).json({ message: "All purchases updated, but no PDFs were generated." });
+//         }
+
+//     } catch (error) {
+//         console.error("Unexpected error:", error);
+//         return res.status(500).json({ error: "Internal Server Error" });
+//     }
+// });
+
+router.put('/updatePurchase', async (req, res) => {
     try {
-        const dataArray = req.body; // Expecting an array of objects
+        const purchaseData = req.body; // Expecting a single object
 
-        console.log(dataArray);
+        console.log(purchaseData);
 
-        if (!Array.isArray(dataArray) || dataArray.length === 0) {
-            return res.status(400).json({ error: "Request body must be a non-empty array of objects" });
+        if (!purchaseData || typeof purchaseData !== "object") {
+            return res.status(400).json({ error: "Request body must be a valid purchase object" });
         }
 
         const updateQuery = `UPDATE purchases SET ? WHERE purchase_id=?`;
@@ -281,109 +580,129 @@ router.put('/updatePurchases', async (req, res) => {
             LEFT JOIN purchasing_settings purSet 
                 ON pur.purchase_date = purSet.date
             LEFT JOIN (
-                SELECT * 
-                FROM purchasing_settings 
+                SELECT * FROM purchasing_settings 
                 ORDER BY date DESC 
                 LIMIT 1
             ) lastSet ON purSet.date IS NULL WHERE pur.purchase_id=?;
         `;
 
-        let ta_purchase_id = 0;
-        for (const purchaseData of dataArray) {
-            try {
-                // Update each purchase in the database
-                await new Promise((resolve, reject) => {
-                    twt.query(updateQuery, [purchaseData, purchaseData.purchase_id], (err) => {
-                        if (err) {
-                            console.error(`Error updating purchase ID ${purchaseData.purchase_id}:`, err);
-                            return reject(err);
-                        }
-                        console.log("The purchase data was successfully updated!");
-                        resolve();
-                    });
+        const materialMapping = {
+            "Ta": { idField: "ta_purchase_id", rmaField: "ta_rma_fees_frw_per_kg" },
+            "W": { idField: "wo3_purchase_id", rmaField: "w_rma_fees_frw_per_kg" },
+            "Sn": { idField: "sn_purchase_id", rmaField: "sn_rma_fees_frw_per_kg" },
+            "Be": { idField: "be_purchase_id", rmaField: "be_rma_fees_frw_per_kg" },
+            "Li": { idField: "li_purchase_id", rmaField: "li_rma_fees_frw_per_kg" },
+        };
+
+        try {
+            // Update the purchase
+            await new Promise((resolve, reject) => {
+                twt.query(updateQuery, [purchaseData, purchaseData.purchase_id], (err) => {
+                    if (err) {
+                        console.error(`Error updating purchase ID ${purchaseData.purchase_id}:`, err);
+                        return reject(err);
+                    }
+                    console.log("The purchase data was successfully updated!");
+                    resolve();
                 });
+            });
 
-                // Fetch the updated purchase data
-                let sample_and_company_number = "";
-                const updatedPurchase = await new Promise((resolve, reject) => {
-                    twt.query(selectQuery, [purchaseData.purchase_id], (err, purchase) => {
-                        if (err) {
-                            console.error(`Error fetching updated data for purchase ID ${purchaseData.purchase_id}:`, err);
-                            return reject(err);
-                        }
-                        sample_and_company_number = purchase[0].sample_and_company_number;
-                        ta_purchase_id = purchase[0].ta_purchase_id;
-                        resolve(purchase[0]);
-                    });
+            // Fetch the updated purchase data
+            let sample_and_company_number = "";
+            const updatedPurchase = await new Promise((resolve, reject) => {
+                twt.query(selectQuery, [purchaseData.purchase_id], (err, purchase) => {
+                    if (err) {
+                        console.error(`Error fetching updated data for purchase ID ${purchaseData.purchase_id}:`, err);
+                        return reject(err);
+                    }
+                    if (!purchase || purchase.length === 0) {
+                        return reject(new Error(`No data found for purchase ID ${purchaseData.purchase_id}`));
+                    }
+
+                    sample_and_company_number = purchase[0].sample_and_company_number;
+                    resolve(purchase[0]);
                 });
+            });
 
-                console.log("updatedPurchase: ", updatedPurchase);
+            console.log("Updated Purchase: ", updatedPurchase);
 
-                // Add data to detailed_lots
-                let purchase_number = 0;
-                let rma_fees_frw_per_kg = 0;
-                if(purchaseData.material_name === "Ta"){
-                    purchase_number = ta_purchase_id;
-                    rma_fees_frw_per_kg = updatedPurchase.ta_rma_fees_frw_per_kg
-                } else if(purchaseData.material_name === "W"){
-                    purchase_number = purchaseData.wo3_purchase_id;
-                    rma_fees_frw_per_kg = updatedPurchase.w_rma_fees_frw_per_kg
-                } else if(purchaseData.material_name === "Sn"){
-                    purchase_number = purchaseData.sn_purchase_id;
-                    rma_fees_frw_per_kg = updatedPurchase.sn_rma_fees_frw_per_kg
-                } else if(purchaseData.material_name === "Be"){
-                    purchase_number = purchaseData.be_purchase_id;
-                    rma_fees_frw_per_kg = updatedPurchase.be_rma_fees_frw_per_kg
-                } else if(purchaseData.material_name === "Li"){
-                    purchase_number = purchaseData.li_purchase_id;
-                    rma_fees_frw_per_kg = updatedPurchase.li_rma_fees_frw_per_kg
-                }
-
-                console.log("purchase_number: ", purchase_number);
-
-                let pdfData = {
-                    purchase_number: purchase_number,
-                    material_type: purchaseData.material_name,
-                    material_name: purchaseData.material_name,
-                    purchase_mass: updatedPurchase.mass,
-                    company_name: updatedPurchase.company_name,
-                    tin: updatedPurchase.tin,
-                    price_usd_per_kg: purchaseData.price_per_kg,
-                    total_amount_usd: purchaseData.total_amount,
-                    date: moment(updatedPurchase.purchase_date).format('DD.MM.YYYY'),
-                    exchange_rate_rwf_usd: updatedPurchase.exchange_rate_frw_to_usd || "1335", // Change to get from last row from purchasing_settgins table
-                    rma_payment_rwf_per_kg: rma_fees_frw_per_kg || "125", // Change to get from last row from purchasing_settgins table
-                    rma_payment_total_rwf: updatedPurchase.rma_frw,
-                    rma_payment_three_percent_usd: "728.6",
-                    rma_payment_three_percent_rwf: "973 409.6",
-                    client_net_payment: updatedPurchase.total_minus_rma_usd,
-                }
-
-                console.log("pdfData: ", pdfData);
-
-                // Generate PDF for the updated purchase
-                let certificateName = `purchasingCert_${purchaseData.material_name}_${sample_and_company_number}`;
-                // const pdfPath = await compilePurchaseReceipt.generatePdf(pdfData, 'purchaseCertificate');
-                const pdfPath = await compilePurchaseReceipt.generatePdf(pdfData, certificateName);
-
-                // Optionally send the PDF data to WebSocket clients or perform other actions
-                if(pdfPath){
-                    console.log("Printing pdf path: ", pdfPath);
-                    console.log(`PDF generated successfully for purchase ID ${purchaseData.purchase_id}`);
-                    res.download(pdfPath);
-                }
-            } catch (error) {
-                console.error(`Error processing purchase ID ${purchaseData.purchase_id}:`, error);
-                return res.status(500).json({ error: `Failed to update purchase ID ${purchaseData.purchase_id}` });
+            // Validate material name
+            if (!purchaseData.material_name || !materialMapping[purchaseData.material_name]) {
+                throw new Error(`Invalid or missing material name: ${purchaseData.material_name}`);
             }
-        }
 
-        // res.status(200).json({ message: "All purchases updated and PDFs regenerated successfully!" });
+            // Get correct purchase_number and rma_fees_frw_per_kg based on material
+            const materialData = materialMapping[purchaseData.material_name];
+            const purchase_number = updatedPurchase[materialData.idField];
+            const rma_fees_frw_per_kg = updatedPurchase[materialData.rmaField];
+
+            console.log("Purchase Number: ", purchase_number);
+
+            let pdfData = {
+                purchase_number: purchase_number,
+                material_type: purchaseData.material_name,
+                material_name: purchaseData.material_name,
+                purchase_mass: updatedPurchase.mass,
+                company_name: updatedPurchase.company_name,
+                tin: updatedPurchase.tin,
+                price_usd_per_kg: purchaseData.price_per_kg,
+                total_amount_usd: purchaseData.total_amount,
+                date: moment(updatedPurchase.purchase_date).format('DD.MM.YYYY'),
+                exchange_rate_rwf_usd: updatedPurchase.exchange_rate_frw_to_usd || "1335",
+                rma_payment_rwf_per_kg: rma_fees_frw_per_kg || "125",
+                rma_payment_total_rwf: updatedPurchase.rma_frw,
+                rma_payment_three_percent_usd: "728.6",
+                rma_payment_three_percent_rwf: "973 409.6",
+                client_net_payment: updatedPurchase.total_minus_rma_usd,
+            };
+
+            let detailed_lots_obj = {
+                purchase_number: purchase_number,
+                date: purchaseData.purchase_date,
+                company_name: purchaseData.company_name,
+                mass: purchaseData.mass,
+                material_name: purchaseData.material_name,
+                material_percentage: purchaseData.material_percentage,
+                price_per_kg: purchaseData.price_per_kg,
+                amount_in_usd: purchaseData.total_amount,
+                Nb2o5: purchaseData.Nb2o5,
+                bq_per_kg: purchaseData.bq_per_kg,
+                mtu: purchaseData.mtu,
+                lme: purchaseData.lme,
+                tc: purchaseData.tc
+            };
+
+            try {
+                await fetch('http://localhost:4000/updateDetailedLotsFromPurchase', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(detailed_lots_obj)
+                });
+            } catch (fetchError) {
+                console.error(`Failed to update detailed lots for purchase ID ${purchaseData.purchase_id}:`, fetchError);
+            }
+
+            console.log("PDF Data: ", pdfData);
+
+            let certificateName = `purchasingCert_${purchaseData.material_name}_${sample_and_company_number}`;
+            const pdfPath = await compilePurchaseReceipt.generatePdf(pdfData, certificateName);
+
+            if (pdfPath) {
+                console.log("PDF generated successfully: ", pdfPath);
+                res.download(pdfPath);
+            } else {
+                return res.status(200).json({ message: "Purchase updated, but no PDF was generated." });
+            }
+        } catch (error) {
+            console.error(`Error processing purchase ID ${purchaseData.purchase_id}:`, error);
+            return res.status(500).json({ error: `Failed to update purchase ID ${purchaseData.purchase_id}` });
+        }
     } catch (error) {
         console.error("Unexpected error:", error);
-        res.status(500).json({ error: "Internal Server Error" });
+        return res.status(500).json({ error: "Internal Server Error" });
     }
 });
+
 
 
 router.get('/getLastPurchaseMaterialNumber', async (req, res) => {
@@ -480,117 +799,6 @@ router.get('/get_Purchase_By_Sample_Number', async (req, res) => {
     }
 })
 
-
-// router.get('/get_Purchase_Info_By_Sample_Number', async (req, res) => {
-//     try {
-//         const sample_number = req.query.sample_number;
-//         const resultFromLab = req.query.resultFromLab;
-//         let query = ``;
-
-//         if(resultFromLab){
-//             if(resultFromLab === 'TWT'){
-//                 query = `SELECT
-//                             reg.company_name, reg.mass, reg.material,
-//                             res.twt_ta2o5, res.twt_wo3, res.twt_sn, res.twt_be, res.twt_li,
-//                             c.tunnels, c.district
-//                         FROM registrations reg
-//                         JOIN results res ON reg.registration_id = res.registration_id
-//                         JOIN companies c ON reg.company_name = c.company_name
-//                         WHERE reg.sample_number = ?;
-//             `;
-//             } else if(resultFromLab === 'GSA'){
-//                 query = `SELECT
-//                             reg.company_name, reg.mass, reg.material,
-//                             res.gsa_ta2o5, res.gsa_wo3, res.gsa_sn, res.gsa_be, res.gsa_li,
-//                             c.tunnels, c.district
-//                         FROM registrations reg
-//                         JOIN results res ON reg.registration_id = res.registration_id
-//                         JOIN companies c ON reg.company_name = c.company_name
-//                         WHERE reg.sample_number = ?;
-//             `;
-//             } else if(resultFromLab === 'ASI'){
-//                 query = `SELECT
-//                             reg.company_name, reg.mass, reg.material,
-//                             res.asi_ta2o5, res.asi_wo3, res.asi_sn, res.asi_be, res.asi_li,
-//                             c.tunnels, c.district
-//                         FROM registrations reg
-//                         JOIN results res ON reg.registration_id = res.registration_id
-//                         JOIN companies c ON reg.company_name = c.company_name
-//                         WHERE reg.sample_number = ?;
-//             `;
-//             }
-//         } else if (!resultFromLab){
-//             query = `SELECT
-//                             reg.company_name, reg.mass, reg.material,
-//                             res.twt_ta2o5, res.twt_wo3, res.twt_sn, res.twt_be, res.twt_li,
-//                             c.tunnels, c.district
-//                         FROM registrations reg
-//                         JOIN results res ON reg.registration_id = res.registration_id
-//                         JOIN companies c ON reg.company_name = c.company_name
-//                         WHERE reg.sample_number = ?;
-//         `;
-//         }
-//         twt.query(query, [sample_number], (err, result) => {
-//             if (err) {
-//                 console.log(err);
-//                 return res.status(500).send('Internal Server Error');
-//             }
-//             let modifiedResult = [];
-//             console.log("printing result: ", result);
-
-//             result.forEach(item => {
-//                 if(item.material === "Ta"){
-//                     modifiedResult.push({
-//                         company_name: item.company_name,
-//                         mass: item.mass,
-//                         material_name: item.material,
-//                         material_percentage: item.twt_ta2o5 || 0,
-//                         tunnels: item.tunnels
-//                     })
-//                 } else if (item.material === "Sn" || item.material === "SN"){
-//                     modifiedResult.push({
-//                         company_name: item.company_name,
-//                         mass: item.mass,
-//                         material_name: item.material,
-//                         material_percentage: item.twt_sn || 0,
-//                         tunnels: item.tunnels
-//                     })
-//                 } else if (item.material === "WO3" || item.material === "W"){
-//                     modifiedResult.push({
-//                         company_name: item.company_name,
-//                         mass: item.mass,
-//                         material_name: item.material,
-//                         material_percentage: item.twt_wo3 || 0,
-//                         tunnels: item.tunnels
-//                     })
-//                 } else if (item.material === "Be"){
-//                     modifiedResult.push({
-//                         company_name: item.company_name,
-//                         mass: item.mass,
-//                         material_name: item.material,
-//                         material_percentage: item.twt_be || 0,
-//                         tunnels: item.tunnels
-//                     })
-//                 } else if (item.material === "Li"){
-//                     modifiedResult.push({
-//                         company_name: item.company_name,
-//                         mass: item.mass,
-//                         material_name: item.material,
-//                         material_percentage: item.twt_li || 0,
-//                         tunnels: item.tunnels
-//                     })
-//                 }
-//             })
-
-            
-            
-//             res.json({purchases: modifiedResult})
-//         })
-//     } catch (error) {
-//         console.error(error);
-//     }
-// });
-
 router.get('/get_Purchase_Info_By_Sample_Number', async (req, res) => {
     try {
         const sample_number = req.query.sample_number;
@@ -663,64 +871,6 @@ router.get('/get_Purchase_Info_By_Sample_Number', async (req, res) => {
     }
 });
 
-
-// // === get purchase info for ta by sample number ===
-
-// router.get('/get_Purchase_Info_For_Ta_By_Sample_Number', async (req, res) => {
-//     try {
-//         const sample_number = req.query.sample_number;
-//         const query = `SELECT reg.company_name, reg.mass, res.twt_ta2o5, c.tunnels FROM registrations reg JOIN results res ON reg.sample_number=res.sample_number JOIN companies c ON reg.company_name=c.company_name WHERE reg.sample_number=?;`
-//         twt.query(query, [sample_number], (err, result) => {
-//             if (err) {
-//                 console.log(err);
-//                 return res.status(500).send('Internal Server Error');
-//             }
-
-//             res.json({purchases: result})
-//         })
-//     } catch (error) {
-//         console.error(error);
-//     }
-// });
-
-// // === get purchase info for sn by sample number ===
-
-// router.get('/get_Purchase_Info_For_Sn_By_Sample_Number', async (req, res) => {
-//     try {
-//         const sample_number = req.query.sample_number;
-//         const query = `SELECT reg.company_name, reg.mass, res.twt_sn, c.tunnels FROM registrations reg JOIN results res ON reg.sample_number=res.sample_number JOIN companies c ON reg.company_name=c.company_name WHERE reg.sample_number=?;`
-//         twt.query(query, [sample_number], (err, result) => {
-//             if (err) {
-//                 console.log(err);
-//                 return res.status(500).send('Internal Server Error');
-//             }
-
-//             res.json({purchases: result})
-//         })
-//     } catch (error) {
-//         console.error(error);
-//     }
-// });
-
-// // === get purchase infor for Wo3 by sample number ===
-
-// router.get('/get_Purchase_Info_For_Wo3_By_Sample_Number', async (req, res) => {
-//     try {
-//         const sample_number = req.query.sample_number;
-//         const query = `SELECT reg.company_name, reg.mass, res.twt_wo3, c.tunnels FROM registrations reg JOIN results res ON reg.sample_number=res.sample_number JOIN companies c ON reg.company_name=c.company_name WHERE reg.sample_number=?;`
-//         twt.query(query, [sample_number], (err, result) => {
-//             if (err) {
-//                 console.log(err);
-//                 return res.status(500).send('Internal Server Error');
-//             }
-
-//             res.json({purchases: result})
-//         })
-//     } catch (error) {
-//         console.error(error);
-//     }
-// });
-
 // === get purchases by date ===
 
 router.get('/getPurchasesByDate', async (req, res) => {
@@ -737,31 +887,6 @@ router.get('/getPurchasesByDate', async (req, res) => {
                 return res.status(500).send('Internal Server Error');
             }
             let modifiedResult = [];
-
-            // result.forEach(item => {
-            //     modifiedResult = result.map(obj => {
-            //         return {
-            //             purchase_id: item.purchase_id,
-            //             sample_number: item.sample_number,
-            //             sample_and_company_number: item.sample_and_company_number,
-            //             purchase_date: item.purchase_date,
-            //             results_date: item.results_date,
-            //             company_name: item.company_name,
-            //             company_tunnel: item.company_tunnel,
-            //             mass: item.mass,
-            //             sample_number: item.sample_number,
-            //             material_name: item.material,
-            //             material_percentage: item.material_percentage,
-            //             price_per_kg: item.price_per_kg,
-            //             total_amount: item.total_amount,
-            //             itsci_mine_site_number: item.itsci_mine_site_number,
-            //             rma_frw: item.rma_frw,
-            //             rma_usd: item.rma_usd,
-            //             total_minus_rma_usd: item.total_minus_rma_usd,
-            //             usd_per_pound: item.usd_per_pound
-            //         };
-            //     });
-            // })
             
 
             res.json({purchases: result})
@@ -783,8 +908,8 @@ router.delete("/deletePurchaseForToday/:purchaseId", async (req, res) => {
 
         const todayDate = moment().format("YYYY-MM-DD");
 
-        // Step 1: Fetch the purchase_date for the given purchase_id
-        const selectQuery = `SELECT purchase_date FROM purchases WHERE purchase_id = ?`;
+        // Step 1: Fetch the purchase_date and material_name for the given purchase_id
+        const selectQuery = `SELECT purchase_date, material_name, ta_purchase_id, wo3_purchase_id, sn_purchase_id, be_purchase_id, li_purchase_id FROM purchases WHERE purchase_id = ?`;
         const purchase = await new Promise((resolve, reject) => {
             twt.query(selectQuery, [purchaseId], (err, results) => {
                 if (err) {
@@ -805,6 +930,28 @@ router.delete("/deletePurchaseForToday/:purchaseId", async (req, res) => {
             return res.status(403).json({ error: `Purchase ID ${purchaseId} has an earlier date (${purchaseDate}) and cannot be deleted.` });
         }
 
+        // Determine the correct purchase number based on material_name
+        let purchase_number = "";
+        switch (purchase.material_name) {
+            case "Ta":
+                purchase_number = purchase.ta_purchase_id;
+                break;
+            case "W":
+                purchase_number = purchase.wo3_purchase_id;
+                break;
+            case "Sn":
+                purchase_number = purchase.sn_purchase_id;
+                break;
+            case "Be":
+                purchase_number = purchase.be_purchase_id;
+                break;
+            case "Li":
+                purchase_number = purchase.li_purchase_id;
+                break;
+            default:
+                return res.status(400).json({ error: "Invalid material name" });
+        }
+
         // Step 2: Proceed with deletion
         const deleteQuery = `DELETE FROM purchases WHERE purchase_id = ?`;
         await new Promise((resolve, reject) => {
@@ -815,6 +962,20 @@ router.delete("/deletePurchaseForToday/:purchaseId", async (req, res) => {
                 }
                 resolve();
             });
+        });
+
+        // Send request to delete detailed lots
+        let detailed_lots_obj = {
+            purchase_id: purchase_number,
+            material_name: purchase.material_name
+        };
+
+        await fetch('http://localhost:4000/deleteDetailedLotsFromPurchase', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(detailed_lots_obj)
         });
 
         res.status(200).json({ message: `Purchase ID ${purchaseId} deleted successfully.` });
@@ -834,8 +995,8 @@ router.delete("/deletePurchase/:purchaseId", async (req, res) => {
             return res.status(400).json({ error: "Missing purchase ID" });
         }
 
-        // Step 1: Check if the purchase exists
-        const selectQuery = `SELECT purchase_id FROM purchases WHERE purchase_id = ?`;
+        // Step 1: Fetch the purchase details
+        const selectQuery = `SELECT purchase_id, material_name, ta_purchase_id, wo3_purchase_id, sn_purchase_id, be_purchase_id, li_purchase_id FROM purchases WHERE purchase_id = ?`;
         const purchase = await new Promise((resolve, reject) => {
             twt.query(selectQuery, [purchaseId], (err, results) => {
                 if (err) {
@@ -850,6 +1011,28 @@ router.delete("/deletePurchase/:purchaseId", async (req, res) => {
             return res.status(404).json({ error: `No purchase found with ID ${purchaseId}` });
         }
 
+        // Determine the correct purchase number based on material_name
+        let purchase_number = "";
+        switch (purchase.material_name) {
+            case "Ta":
+                purchase_number = purchase.ta_purchase_id;
+                break;
+            case "W":
+                purchase_number = purchase.wo3_purchase_id;
+                break;
+            case "Sn":
+                purchase_number = purchase.sn_purchase_id;
+                break;
+            case "Be":
+                purchase_number = purchase.be_purchase_id;
+                break;
+            case "Li":
+                purchase_number = purchase.li_purchase_id;
+                break;
+            default:
+                return res.status(400).json({ error: "Invalid material name" });
+        }
+
         // Step 2: Proceed with deletion
         const deleteQuery = `DELETE FROM purchases WHERE purchase_id = ?`;
         await new Promise((resolve, reject) => {
@@ -860,6 +1043,20 @@ router.delete("/deletePurchase/:purchaseId", async (req, res) => {
                 }
                 resolve();
             });
+        });
+
+        // Send request to delete detailed lots
+        let detailed_lots_obj = {
+            purchase_id: purchase_number,
+            material_name: purchase.material_name
+        };
+
+        await fetch('http://localhost:4000/deleteDetailedLotsFromPurchase', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(detailed_lots_obj)
         });
 
         res.status(200).json({ message: `Purchase ID ${purchaseId} deleted successfully.` });

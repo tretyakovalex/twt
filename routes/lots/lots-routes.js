@@ -144,6 +144,47 @@ router.post('/createdDetailedLotsFromPurchase', async (req, res) => {
     } catch (error) {
         console.error(error);
     }
+});
+
+router.put('/updateDetailedLotsFromPurchase', async (req, res) => {
+    try {
+        const data = req.body;
+
+        const query = `UPDATE detailed_lots SET ? WHERE purchase_number=${data.purchase_number} AND material_name='${data.material_name}'`;
+
+        console.log(data);
+
+        // twt.query(query, [data.purchase_number, data.date, data.company_name, data.mass, data.material_name, data.material_percentage, data.price_per_kg, data.comment, data.amount_in_usd, data.Nb2o5, data.bq_per_kg, data.mtu, data.lme, data.tc], async (err, detailed_lots) => {
+        twt.query(query, data, (err, detailed_lots) => {
+            if(err){
+                console.error(err);
+            }
+
+            res.json("Successfully added data from purchase");
+        })
+    } catch (error) {
+        console.error(error);
+    }
+})
+
+router.post('/deleteDetailedLotsFromPurchase', async (req, res) => {
+    try {
+        const data = req.body;
+        
+        console.log(data);
+
+        const query = `DELETE FROM detailed_lots WHERE purchase_number=${data.purchase_id} AND material_name='${data.material_name}'`;
+
+        twt.query(query, data, (err, detailed_lots) => {
+            if(err){
+                console.error(err)
+            }
+
+            res.json("Successfully added data from purchase");
+        })
+    } catch (error) {
+        console.error(error);
+    }
 })
 
 router.post('/createDetailedLots', async (req, res) => {

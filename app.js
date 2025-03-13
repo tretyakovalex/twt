@@ -38,6 +38,7 @@ app.use(require('./routes/users/userRegistration'));
 
 app.use(require('./routes/purchases/exportAllPurchasesToExcel'));
 
+app.use(require('./routes/purchases/purchase-certificate-routes'));
 
 // === Frontend: ===
 // =================
